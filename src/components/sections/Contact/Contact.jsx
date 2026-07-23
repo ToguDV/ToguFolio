@@ -2,7 +2,8 @@ import Section from '../../layout/Section.jsx';
 import Eyebrow from '../../ui/Eyebrow.jsx';
 import Heading from '../../ui/Heading.jsx';
 import Button from '../../ui/Button.jsx';
-import Link from '../../ui/Link.jsx';
+import CommandList from '../../ui/CommandList.jsx';
+import Keycap from '../../ui/Keycap.jsx';
 
 export default function Contact({ id = 'contact' }) {
   return (
@@ -17,19 +18,19 @@ export default function Contact({ id = 'contact' }) {
         </p>
       </header>
 
-      <div className="flex flex-col gap-3">
-        <Button href="mailto:hello@example.com" variant="primary">
-          hello@example.com
-        </Button>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <Link href="https://github.com/example" external>
-            github.com/example
-          </Link>
-          <Link href="https://linkedin.com/in/example" external>
-            linkedin.com/in/example
-          </Link>
+        <div className="flex flex-col gap-3">
+          <Button href="mailto:hello@example.com" variant="primary">
+            hello@example.com
+          </Button>
+          <CommandList>
+            <Keycap href="https://github.com/example" variant="primary" external>
+              github.com/example
+            </Keycap>
+            <Keycap href="https://linkedin.com/in/example" variant="secondary" external>
+              linkedin.com/in/example
+            </Keycap>
+          </CommandList>
         </div>
-      </div>
     </Section>
   );
 }

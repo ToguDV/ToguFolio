@@ -1,4 +1,5 @@
 import AsciiBlock from '../../effects/AsciiBlock.jsx';
+import CommandList from '../../ui/CommandList.jsx';
 import Keycap from '../../ui/Keycap.jsx';
 import Tag from '../../ui/Tag.jsx';
 import { PROJECT_ASCII } from '../../../data/ascii.js';
@@ -41,15 +42,10 @@ export default function ProjectCard({ project }) {
           ))}
         </ul>
 
-        <div className={styles.links}>
-          {url || repo ? (
-            <span className={styles.linksArrow} aria-hidden="true">
-              &gt;&nbsp;
-            </span>
-          ) : null}
+        <CommandList className={styles.links}>
           {url ? <Keycap href={url} variant="primary" external>tour</Keycap> : null}
           {repo ? <Keycap href={repo} variant="secondary" external>source</Keycap> : null}
-        </div>
+        </CommandList>
       </div>
     </article>
   );
