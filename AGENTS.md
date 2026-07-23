@@ -195,9 +195,9 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 4. ~~`components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).~~ ✅
 5. ~~`components/layout/Section.jsx` + `Shell.jsx`.~~ ✅
 6. `components/sections/Hero/` with ASCII art + MatrixRain. DONE TOO ✅
-7. Remaining sections.
-8. Wire `Nav.jsx` smooth-scroll to section ids.
-9. Verify with `npm run lint` and `npm run build`.
+7. ~~Remaining sections.~~ ✅
+8. ~~Wire `Nav.jsx` smooth-scroll to section ids.~~ ✅
+9. ~~Verify with `npm run lint` and `npm run build`.~~ ✅
 
 ### Progress
 
@@ -208,7 +208,6 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 - ✅ Step 3: `src/styles/tokens.css` (all custom properties from the design tokens table) + `src/styles/base.css` (reset, body defaults, focus rings, global `prefers-reduced-motion` reset). Plus `src/styles/fonts.css` as a thin wrapper that imports the two fontsource weights.
 - ✅ Step 4: `src/components/effects/Caret.jsx` + `src/components/effects/Typewriter/Typewriter.jsx` + co-located `useTypewriter.js`.
 - ✅ Step 5: `src/components/layout/Section.jsx` + `src/components/layout/Shell.jsx`.
-- Step 6: Done too ✅
 
 **Files added/changed in this batch (step 5):**
 
@@ -224,4 +223,53 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 - The class-join idiom `[…].filter(Boolean).join(' ')` is used in both components for predictable `className` overrides (user-supplied class always wins via source order).
 - `npm run lint` and `npm run build` both pass clean at this point.
 
-**Not yet done:** steps 6-9 (Hero with ASCII + MatrixRain, remaining sections, Nav wiring, final verify).
+**Done (steps 6-9):**
+
+- ✅ Step 6: `src/components/sections/Hero/` + `MatrixRain/` cluster + `AsciiBlock`. Hero composes `<Section id="hero" tone="dark">` with `<MatrixRain>` behind, eyebrow `$> portfolio --init`, typewriter h1 `Hello, world.`, lede, and `HERO_ASCII`. `MatrixRain.jsx` mounts an absolutely-positioned canvas; `useMatrixRain.js` runs a 30fps loop (DPR-aware, `ResizeObserver`-driven, per-column head + fading tail, head character bright lime, soft-lime tail, `prefers-reduced-motion` short-circuit). `chars.js` = Katakana half-width + Latin + digits + symbols with rare `( ͡° ͜ʖ ͡°)` / `¯\_(ツ)_/¯` strings. `AsciiBlock.jsx` = shared `<pre>` renderer with `ink` / `ink-soft` / `ink-mute` tones.
+- ✅ Step 7: Remaining sections + UI primitives + data. **UI** (`src/components/ui/`): `Eyebrow` (shell-prompt label, `prompt` + `children`), `Heading` (h1/h2/h3 with lime; `typewriter` prop wraps text in `<Typewriter>`), `Button` (primary/ghost; renders `<a>` if `href` else `<button>`; monospace uppercase with `> ` prefix), `Link` (inline `> text`; `tone` + `external`), `Tag` (monospace chip with hairline border). **Data**: `src/data/projects.js` (4 placeholders — `ghost-design-system`, `terminal-portfolio`, `cli-task-runner`, `ascii-renderer` — with `live` / `wip` / `archived` status); `src/data/ascii.js` extended with `PROJECT_ASCII` (reusable build/ship block) and `ABOUT_OUTPUT` (`uname` / `cat about.txt` block). **Sections**: `Projects/Projects.jsx` (eyebrow + typewriter h2 + 1/2-col grid, `max-w-5xl` override) + `ProjectCard.jsx` (ASCII preview + status badge + title + description + stack chips + `tour` / `source` links); `About/About.jsx` + `AboutTerminal.jsx` (frame with three macOS-style dots + `<pre>` body + `<Caret>` at the end); `Contact/Contact.jsx` (eyebrow + typewriter h2 + lede + `mailto:` button + GitHub / LinkedIn links).
+- ✅ Step 8: `src/components/layout/Nav.jsx` (sticky top, `~/portfolio` brand → `#hero`, three anchors `#projects` / `#about` / `#contact` with `> ` pseudo-element prefix, blur + translucent canvas background, hairline bottom border, `z-index: 10`) + `Nav.module.css`. `Footer.jsx` colofón (build line, deploy date, copyright, GitHub / LinkedIn links). Smooth scroll wired in `src/styles/base.css` via `scroll-behavior: smooth` + `scroll-padding-top: var(--nav-height)`; the existing `prefers-reduced-motion` override sets `scroll-behavior: auto !important`. New `--nav-height: 56px` token. `Section.jsx` adds `scroll-mt-[var(--nav-height)]` so anchored sections land below the sticky Nav.
+- ✅ Step 9: `npm run lint` (oxlint, clean — no warnings) and `npm run build` (Vite 8, 52 modules, `dist/index-*.js` 206.84 kB / gzip 65.60 kB, CSS 42.16 kB / gzip 19.76 kB) both pass clean.
+
+**Files added/changed in this batch (steps 6-9):**
+
+Sections:
+- `src/components/sections/Hero/{Hero,HeroAscii}.jsx` + `Hero.module.css`.
+- `src/components/sections/Projects/{Projects,ProjectCard}.jsx` + `Projects.module.css` + `ProjectCard.module.css`.
+- `src/components/sections/About/{About,AboutTerminal}.jsx` + `About.module.css` + `AboutTerminal.module.css`.
+- `src/components/sections/Contact/Contact.jsx`.
+
+Effects (Hero):
+- `src/components/effects/MatrixRain/{MatrixRain,useMatrixRain,chars}.js` + `MatrixRain.module.css`.
+- `src/components/effects/AsciiBlock.jsx` + `AsciiBlock.module.css`.
+
+UI primitives:
+- `src/components/ui/{Eyebrow,Heading,Button,Link,Tag}.jsx`.
+
+Layout:
+- `src/components/layout/Nav.jsx` + `Nav.module.css`.
+- `src/components/layout/Footer.jsx` + `Footer.module.css`.
+- `src/components/layout/Section.jsx` — added `scroll-mt-[var(--nav-height)]`.
+
+Data:
+- `src/data/projects.js` — new (4 placeholders).
+- `src/data/ascii.js` — added `PROJECT_ASCII` and `ABOUT_OUTPUT`.
+
+Styles:
+- `src/styles/tokens.css` — added `--nav-height: 56px`.
+- `src/styles/base.css` — `scroll-behavior: smooth` + `scroll-padding-top: var(--nav-height)` on `html`.
+
+Root:
+- `src/App.jsx` — composition: `<Shell><Nav /><main><Hero/><Projects/><About/><Contact/></main><Footer/></Shell>`.
+
+**Deviations / decisions (steps 6-9):**
+
+- Project cards use a **single reusable ASCII block** (`PROJECT_ASCII`) — user-decided. Cards differ by title, description, stack, and a colored status badge (`live` lime / `wip` lime-soft / `archived` muted).
+- **Placeholders** in `projects.js` (4 ficticios) and the contact / about copy (`example.com`, `<your city>`) — user-decided. Same shape, no component changes needed to swap in real content.
+- Project data lives in `data/projects.js` (per the rule "data/*.js is plain JS, no JSX"), not in `sections/Projects/projects.data.js` as the architecture tree currently lists. The tree shows both locations — the canonical one going forward is `data/projects.js`. (The tree under "Component Architecture" still needs a small cleanup; flagged for next pass.)
+- `Heading` accepts `text` + `typewriter` so section h2s fire the one-shot reveal on mount; `children` still works for plain headings.
+- `Button` is polymorphic: `<a>` when `href` is set, `<button>` otherwise — keeps the `> ` CTA prefix uniform for `mailto:` + future actions.
+- The About section sits on the canvas tone but does **not** enable scanlines — the optional `data-effect="scanlines"` global overlay is not implemented in this batch (no current content asked for it; `Scanlines.jsx` from the architecture tree is still a TODO).
+- `Nav` uses `position: sticky; top: 0` (not `fixed`) so page flow is preserved and there's no magic body padding-top. Anchor offset is handled by `scroll-mt-[var(--nav-height)]` on each Section.
+- `react/only-export-components` is clean — no new warnings; `TONES` const inside `Section.jsx` is already covered by `allowConstantExport: true`.
+
+**Status: all 9 steps complete.** `npm run lint` + `npm run build` both green.

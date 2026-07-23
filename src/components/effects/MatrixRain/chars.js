@@ -6,7 +6,7 @@ const SYMBOLS = '<>{}[]/\\!@#$%^&*';
 
 export const CHARS = (KATAKANA + LATIN + DIGITS + SYMBOLS).split('');
 
-const RARE_STRINGS = ['( ͡° ͜ʖ ͡°)', '¯\\_(ツ)_/¯'];
+const RARE_STRINGS = ['( ͡° ͜ʖ ͡°)', '¯\\_(ツ)_/¯', 'HOLA GUAPOOOOOS'];
 const RARE_PROBABILITY = 0.001;
 
 export function pickRandomChar() {
