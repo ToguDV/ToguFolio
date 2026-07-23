@@ -6,6 +6,12 @@ const SYMBOLS = '<>{}[]/\\!@#$%^&*';
 
 export const CHARS = (KATAKANA + LATIN + DIGITS + SYMBOLS).split('');
 
+const RARE_STRINGS = ['( ͡° ͜ʖ ͡°)', '¯\\_(ツ)_/¯'];
+const RARE_PROBABILITY = 0.001;
+
 export function pickRandomChar() {
+  if (Math.random() < RARE_PROBABILITY) {
+    return RARE_STRINGS[Math.floor(Math.random() * RARE_STRINGS.length)];
+  }
   return CHARS[Math.floor(Math.random() * CHARS.length)];
 }

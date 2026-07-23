@@ -194,7 +194,7 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 3. ~~`styles/tokens.css` + `styles/base.css`.~~ ✅
 4. ~~`components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).~~ ✅
 5. ~~`components/layout/Section.jsx` + `Shell.jsx`.~~ ✅
-6. `components/sections/Hero/` with ASCII art + MatrixRain.
+6. `components/sections/Hero/` with ASCII art + MatrixRain. DONE TOO ✅
 7. Remaining sections.
 8. Wire `Nav.jsx` smooth-scroll to section ids.
 9. Verify with `npm run lint` and `npm run build`.
@@ -208,6 +208,7 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 - ✅ Step 3: `src/styles/tokens.css` (all custom properties from the design tokens table) + `src/styles/base.css` (reset, body defaults, focus rings, global `prefers-reduced-motion` reset). Plus `src/styles/fonts.css` as a thin wrapper that imports the two fontsource weights.
 - ✅ Step 4: `src/components/effects/Caret.jsx` + `src/components/effects/Typewriter/Typewriter.jsx` + co-located `useTypewriter.js`.
 - ✅ Step 5: `src/components/layout/Section.jsx` + `src/components/layout/Shell.jsx`.
+- Step 6: Done too ✅
 
 **Files added/changed in this batch (step 5):**
 

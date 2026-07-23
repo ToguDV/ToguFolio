@@ -71,6 +71,10 @@ export default function useMatrixRain(canvasRef) {
     let rafId = 0;
     let lastTime = 0;
 
+    function cellCountOf(str) {
+      return Math.max(1, Math.ceil(ctx.measureText(str).width / cellWidth));
+    }
+
     function frame(time) {
       if (time - lastTime < FRAME_INTERVAL_MS) {
         rafId = requestAnimationFrame(frame);
@@ -79,30 +83,53 @@ export default function useMatrixRain(canvasRef) {
       lastTime = time;
 
       const rows = Math.max(1, Math.floor(cssHeight / CELL_HEIGHT));
+      const numCols = columns.length;
 
       ctx.globalAlpha = FADE_ALPHA;
       ctx.fillStyle = canvasColor;
       ctx.fillRect(0, 0, cssWidth, cssHeight);
       ctx.globalAlpha = 1;
 
-      for (let i = 0; i < columns.length; i++) {
+      const claimed = new Set();
+      for (let i = 0; i < numCols; i++) {
+        const col = columns[i];
+        for (let j = 0; j < TAIL_LENGTH; j++) {
+          const row = col.head - j;
+          if (row < 0 || row >= rows) continue;
+          const ch = col.trail[j];
+          if (ch.length > 1) {
+            const span = cellCountOf(ch);
+            for (let k = 0; k < span; k++) {
+              const c = i + k;
+              if (c < numCols) claimed.add(row * numCols + c);
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < numCols; i++) {
         const col = columns[i];
         const x = i * cellWidth;
 
         if (col.head >= 0 && col.head < rows) {
-          if (Math.random() < 0.08) col.trail[0] = pickRandomChar();
-          ctx.globalAlpha = HEAD_ALPHA;
-          ctx.fillStyle = lime;
-          ctx.fillText(col.trail[0], x, col.head * CELL_HEIGHT);
+          const ch0 = col.trail[0];
+          if (!(ch0.length === 1 && claimed.has(col.head * numCols + i))) {
+            if (Math.random() < 0.08) col.trail[0] = pickRandomChar();
+            ctx.globalAlpha = HEAD_ALPHA;
+            ctx.fillStyle = lime;
+            ctx.fillText(col.trail[0], x, col.head * CELL_HEIGHT);
+          }
         }
 
         ctx.fillStyle = softLime;
         for (let j = 1; j < TAIL_LENGTH; j++) {
           const row = col.head - j;
           if (row < 0 || row >= rows) continue;
+          const ch = col.trail[j];
+          if (ch.length === 1 && claimed.has(row * numCols + i)) continue;
           const fade = 1 - j / TAIL_LENGTH;
           ctx.globalAlpha = HEAD_ALPHA * fade * 0.85;
-          ctx.fillText(col.trail[j], x, row * CELL_HEIGHT);
+          ctx.fillText(ch, x, row * CELL_HEIGHT);
         }
         ctx.globalAlpha = 1;
 
