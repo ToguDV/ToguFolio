@@ -11,10 +11,15 @@ function prefersReducedMotion() {
 const FONT_PX = 14;
 const LINE_HEIGHT = 1.2;
 const CELL_HEIGHT = Math.round(FONT_PX * LINE_HEIGHT);
-const TAIL_LENGTH = 16;
-const FADE_ALPHA = 0.05;
-const HEAD_ALPHA = 0.22;
-const FRAME_INTERVAL_MS = 1000 / 30;
+
+const DEFAULTS = {
+  headAlpha: 0.22,
+  fadeAlpha: 0.05,
+  tailLength: 16,
+  frameIntervalMs: 1000 / 30,
+  speed: 0.7,
+  density: 1,
+};
 
 function readVar(name, fallback) {
   if (typeof window === 'undefined') return fallback;
@@ -22,16 +27,29 @@ function readVar(name, fallback) {
   return v || fallback;
 }
 
-function spawnColumn() {
+function spawnColumn(tailLength, speedBase) {
   return {
     head: -Math.floor(Math.random() * 20),
-    speed: 0.4 + Math.random() * 0.6,
-    trail: Array.from({ length: TAIL_LENGTH }, () => pickRandomChar()),
+    speed: speedBase * (0.5 + Math.random()),
+    trail: Array.from({ length: tailLength }, () => pickRandomChar()),
     tick: 0,
+    active: true,
   };
 }
 
-export default function useMatrixRain(canvasRef) {
+function spawnInactiveColumn() {
+  return {
+    head: -999,
+    speed: 0,
+    trail: [],
+    tick: 0,
+    active: false,
+  };
+}
+
+export default function useMatrixRain(canvasRef, options = {}) {
+  const { headAlpha, fadeAlpha, tailLength, frameIntervalMs, speed, density } = { ...DEFAULTS, ...options };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,95 +80,98 @@ export default function useMatrixRain(canvasRef) {
       ctx.textBaseline = 'top';
       cellWidth = Math.max(6, Math.ceil(ctx.measureText('M').width));
       const cols = Math.max(1, Math.floor(rect.width / cellWidth));
-      columns = Array.from({ length: cols }, spawnColumn);
+      columns = Array.from({ length: cols }, () =>
+        Math.random() < density ? spawnColumn(tailLength, speed) : spawnInactiveColumn()
+      );
       ctx.globalAlpha = 1;
       ctx.fillStyle = canvasColor;
       ctx.fillRect(0, 0, cssWidth, cssHeight);
     }
 
-    let rafId = 0;
-    let lastTime = 0;
+  let rafId = 0;
+  let lastTime = 0;
 
-    function cellCountOf(str) {
-      return Math.max(1, Math.ceil(ctx.measureText(str).width / cellWidth));
-    }
+  function cellCountOf(str) {
+    return Math.max(1, Math.ceil(ctx.measureText(str).width / cellWidth));
+  }
 
-    function frame(time) {
-      if (time - lastTime < FRAME_INTERVAL_MS) {
-        rafId = requestAnimationFrame(frame);
-        return;
-      }
-      lastTime = time;
-
-      const rows = Math.max(1, Math.floor(cssHeight / CELL_HEIGHT));
-      const numCols = columns.length;
-
-      ctx.globalAlpha = FADE_ALPHA;
-      ctx.fillStyle = canvasColor;
-      ctx.fillRect(0, 0, cssWidth, cssHeight);
-      ctx.globalAlpha = 1;
-
-      const claimed = new Set();
-      for (let i = 0; i < numCols; i++) {
-        const col = columns[i];
-        for (let j = 0; j < TAIL_LENGTH; j++) {
-          const row = col.head - j;
-          if (row < 0 || row >= rows) continue;
-          const ch = col.trail[j];
-          if (ch.length > 1) {
-            const span = cellCountOf(ch);
-            for (let k = 0; k < span; k++) {
-              const c = i + k;
-              if (c < numCols) claimed.add(row * numCols + c);
-            }
-          }
-        }
-      }
-
-      for (let i = 0; i < numCols; i++) {
-        const col = columns[i];
-        const x = i * cellWidth;
-
-        if (col.head >= 0 && col.head < rows) {
-          const ch0 = col.trail[0];
-          if (!(ch0.length === 1 && claimed.has(col.head * numCols + i))) {
-            if (Math.random() < 0.08) col.trail[0] = pickRandomChar();
-            ctx.globalAlpha = HEAD_ALPHA;
-            ctx.fillStyle = lime;
-            ctx.fillText(col.trail[0], x, col.head * CELL_HEIGHT);
-          }
-        }
-
-        ctx.fillStyle = softLime;
-        for (let j = 1; j < TAIL_LENGTH; j++) {
-          const row = col.head - j;
-          if (row < 0 || row >= rows) continue;
-          const ch = col.trail[j];
-          if (ch.length === 1 && claimed.has(row * numCols + i)) continue;
-          const fade = 1 - j / TAIL_LENGTH;
-          ctx.globalAlpha = HEAD_ALPHA * fade * 0.85;
-          ctx.fillText(ch, x, row * CELL_HEIGHT);
-        }
-        ctx.globalAlpha = 1;
-
-        col.tick += col.speed;
-        if (col.tick >= 1) {
-          const advance = Math.floor(col.tick);
-          col.head += advance;
-          col.tick -= advance;
-          for (let k = TAIL_LENGTH - 1; k > 0; k--) {
-            col.trail[k] = col.trail[k - 1];
-          }
-          col.trail[0] = pickRandomChar();
-        }
-
-        if (col.head - TAIL_LENGTH > rows) {
-          Object.assign(col, spawnColumn());
-        }
-      }
-
+  function frame(time) {
+    if (time - lastTime < frameIntervalMs) {
       rafId = requestAnimationFrame(frame);
+      return;
     }
+    lastTime = time;
+
+    const rows = Math.max(1, Math.floor(cssHeight / CELL_HEIGHT));
+    const numCols = columns.length;
+
+    ctx.globalAlpha = fadeAlpha;
+    ctx.fillStyle = canvasColor;
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+    ctx.globalAlpha = 1;
+
+    const claimed = new Set();
+    for (let i = 0; i < numCols; i++) {
+      const col = columns[i];
+      for (let j = 0; j < tailLength; j++) {
+        const row = col.head - j;
+        if (row < 0 || row >= rows) continue;
+        const ch = col.trail[j];
+        if (ch.length > 1) {
+          const span = cellCountOf(ch);
+          for (let k = 0; k < span; k++) {
+            const c = i + k;
+            if (c < numCols) claimed.add(row * numCols + c);
+          }
+        }
+      }
+    }
+
+    for (let i = 0; i < numCols; i++) {
+      const col = columns[i];
+      if (!col.active) continue;
+      const x = i * cellWidth;
+
+      if (col.head >= 0 && col.head < rows) {
+        const ch0 = col.trail[0];
+        if (!(ch0.length === 1 && claimed.has(col.head * numCols + i))) {
+          if (Math.random() < 0.08) col.trail[0] = pickRandomChar();
+          ctx.globalAlpha = headAlpha;
+          ctx.fillStyle = lime;
+          ctx.fillText(col.trail[0], x, col.head * CELL_HEIGHT);
+        }
+      }
+
+      ctx.fillStyle = softLime;
+      for (let j = 1; j < tailLength; j++) {
+        const row = col.head - j;
+        if (row < 0 || row >= rows) continue;
+        const ch = col.trail[j];
+        if (ch.length === 1 && claimed.has(row * numCols + i)) continue;
+        const fade = 1 - j / tailLength;
+        ctx.globalAlpha = headAlpha * fade * 0.85;
+        ctx.fillText(ch, x, row * CELL_HEIGHT);
+      }
+      ctx.globalAlpha = 1;
+
+      col.tick += col.speed;
+      if (col.tick >= 1) {
+        const advance = Math.floor(col.tick);
+        col.head += advance;
+        col.tick -= advance;
+        for (let k = tailLength - 1; k > 0; k--) {
+          col.trail[k] = col.trail[k - 1];
+        }
+        col.trail[0] = pickRandomChar();
+      }
+
+      if (col.active && col.head - tailLength > rows) {
+        Object.assign(col, spawnColumn(tailLength, speed));
+      }
+    }
+
+    rafId = requestAnimationFrame(frame);
+  }
 
     resize();
     const ro = new ResizeObserver(resize);
@@ -161,5 +182,5 @@ export default function useMatrixRain(canvasRef) {
       cancelAnimationFrame(rafId);
       ro.disconnect();
     };
-  }, [canvasRef]);
+  }, [canvasRef, headAlpha, fadeAlpha, tailLength, frameIntervalMs, speed, density]);
 }

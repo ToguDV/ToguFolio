@@ -1,6 +1,7 @@
 import Shell from './components/layout/Shell.jsx';
 import Nav from './components/layout/Nav.jsx';
 import Footer from './components/layout/Footer.jsx';
+import BandDivider from './components/layout/BandDivider.jsx';
 import Hero from './components/sections/Hero/Hero.jsx';
 import Projects from './components/sections/Projects/Projects.jsx';
 import About from './components/sections/About/About.jsx';
@@ -14,6 +15,7 @@ function App() {
       <main>
         <Hero />
         <Projects />
+        <BandDivider label="-- section --break" />
         <About />
         <Contact />
       </main>
