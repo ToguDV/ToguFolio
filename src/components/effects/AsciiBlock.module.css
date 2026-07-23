@@ -1,0 +1,21 @@
+.ascii {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  display: inline-block;
+}
+
+.ink {
+  color: var(--color-ink);
+}
+
+.inkSoft {
+  color: var(--color-ink-soft);
+}
+
+.inkMute {
+  color: var(--color-ink-mute);
+}

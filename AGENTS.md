@@ -193,7 +193,7 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 2. ~~Add `@fontsource/jetbrains-mono` (decided).~~ ✅
 3. ~~`styles/tokens.css` + `styles/base.css`.~~ ✅
 4. ~~`components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).~~ ✅
-5. `components/layout/Section.jsx` + `Shell.jsx`.
+5. ~~`components/layout/Section.jsx` + `Shell.jsx`.~~ ✅
 6. `components/sections/Hero/` with ASCII art + MatrixRain.
 7. Remaining sections.
 8. Wire `Nav.jsx` smooth-scroll to section ids.
