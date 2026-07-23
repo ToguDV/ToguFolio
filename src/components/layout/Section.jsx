@@ -10,6 +10,7 @@ export default function Section({ id, tone = 'dark', children, className = '' })
       className={[
         TONES[tone] ?? TONES.dark,
         'py-[var(--section-padding-y)]',
+        'scroll-mt-[var(--nav-height)]',
         className,
       ]
         .filter(Boolean)
