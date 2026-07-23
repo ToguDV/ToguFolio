@@ -1,6 +1,6 @@
 import AsciiBlock from '../../effects/AsciiBlock.jsx';
+import Keycap from '../../ui/Keycap.jsx';
 import Tag from '../../ui/Tag.jsx';
-import Link from '../../ui/Link.jsx';
 import { PROJECT_ASCII } from '../../../data/ascii.js';
 import styles from './ProjectCard.module.css';
 
@@ -42,8 +42,13 @@ export default function ProjectCard({ project }) {
         </ul>
 
         <div className={styles.links}>
-          {url ? <Link href={url} external>tour</Link> : null}
-          {repo ? <Link href={repo} external>source</Link> : null}
+          {url || repo ? (
+            <span className={styles.linksArrow} aria-hidden="true">
+              &gt;&nbsp;
+            </span>
+          ) : null}
+          {url ? <Keycap href={url} variant="primary" external>tour</Keycap> : null}
+          {repo ? <Keycap href={repo} variant="secondary" external>source</Keycap> : null}
         </div>
       </div>
     </article>
