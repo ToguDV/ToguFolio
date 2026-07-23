@@ -199,15 +199,8 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 8. ~~Wire `Nav.jsx` smooth-scroll to section ids.~~ ✅
 9. ~~Verify with `npm run lint` and `npm run build`.~~ ✅
 
-### Progress
 
-**Done (steps 1-5):**
 
-- ✅ Step 1: Tailwind v4 wired in `vite.config.js` + `src/index.css` (was already wired in the Vite template).
-- ✅ Step 2: Added `@fontsource/jetbrains-mono` — only weights 400 + 700 are imported (the only ones the size scale uses).
-- ✅ Step 3: `src/styles/tokens.css` (all custom properties from the design tokens table) + `src/styles/base.css` (reset, body defaults, focus rings, global `prefers-reduced-motion` reset). Plus `src/styles/fonts.css` as a thin wrapper that imports the two fontsource weights.
-- ✅ Step 4: `src/components/effects/Caret.jsx` + `src/components/effects/Typewriter/Typewriter.jsx` + co-located `useTypewriter.js`.
-- ✅ Step 5: `src/components/layout/Section.jsx` + `src/components/layout/Shell.jsx`.
 
 **Files added/changed in this batch (step 5):**
 
