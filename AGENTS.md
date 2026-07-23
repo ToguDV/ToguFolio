@@ -189,12 +189,42 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 - No tests (per stack gotcha).
 
 ### Implementation Order (when we start coding)
-1. Wire Tailwind v4 in `vite.config.js` + `src/index.css` (decided: wire it, not remove).
-2. Add `@fontsource/jetbrains-mono` (decided).
-3. `styles/tokens.css` + `styles/base.css`.
-4. `components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).
+1. ~~Wire Tailwind v4 in `vite.config.js` + `src/index.css` (decided: wire it, not remove).~~ ✅
+2. ~~Add `@fontsource/jetbrains-mono` (decided).~~ ✅
+3. ~~`styles/tokens.css` + `styles/base.css`.~~ ✅
+4. ~~`components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).~~ ✅
 5. `components/layout/Section.jsx` + `Shell.jsx`.
 6. `components/sections/Hero/` with ASCII art + MatrixRain.
 7. Remaining sections.
 8. Wire `Nav.jsx` smooth-scroll to section ids.
 9. Verify with `npm run lint` and `npm run build`.
+
+### Progress
+
+**Done (steps 1-4):**
+
+- ✅ Step 1: Tailwind v4 wired in `vite.config.js` + `src/index.css` (was already wired in the Vite template).
+- ✅ Step 2: Added `@fontsource/jetbrains-mono` — only weights 400 + 700 are imported (the only ones the size scale uses).
+- ✅ Step 3: `src/styles/tokens.css` (all custom properties from the design tokens table) + `src/styles/base.css` (reset, body defaults, focus rings, global `prefers-reduced-motion` reset). Plus `src/styles/fonts.css` as a thin wrapper that imports the two fontsource weights.
+- ✅ Step 4: `src/components/effects/Caret.jsx` + `src/components/effects/Typewriter/Typewriter.jsx` + co-located `useTypewriter.js`.
+
+**Files added/changed in this batch:**
+
+- `src/styles/tokens.css` — all color, type scale, spacing, radius tokens.
+- `src/styles/fonts.css` — wraps `@fontsource/jetbrains-mono` 400/700.
+- `src/styles/base.css` — reset + body defaults + `prefers-reduced-motion` global (uses `!important`).
+- `src/index.css` — imports in order: `tailwindcss` → `fonts` → `tokens` → `base`.
+- `src/components/effects/Caret.jsx` + `Caret.module.css` — `<span aria-hidden>` with a 1ch × 1em `currentColor` block, `step-end` blink at 1.06s.
+- `src/components/effects/Typewriter/Typewriter.jsx` — renders text progressively, mounts `<Caret />` while not done.
+- `src/components/effects/Typewriter/useTypewriter.js` — `{ speed = 35, startDelay = 200 }`; renders final state immediately under reduced-motion.
+- `src/App.jsx` — replaced Vite template with a minimal terminal-style demo: `$> portfolio --init` eyebrow, `<h1>` with `<Typewriter text="Hello, world." speed={70} />`, and a `> booting terminal <Caret />` line.
+- `src/App.css` — cleared (was full of Vite template styles). Kept the file as an empty shell per the "Styles" entry in the Stack section.
+
+**Deviations / decisions:**
+
+- `Caret` is a real `<span>` (not a `::after` pseudo-element) so it can be a reusable React component. The spec mentions `::after` for the *focus-ring* caret — that remains a per-element CSS concern when we build `Button`/`Link`.
+- `useTypewriter` co-located in `components/effects/Typewriter/` per the architecture rule "Hooks live next to the component that owns them".
+- `Caret`'s reduced-motion override uses `!important` so it wins against `base.css`'s global `!important` reduced-motion rule — without it the caret would freeze invisible under `prefers-reduced-motion: reduce`.
+- `Caret` uses `background: currentColor` so it inherits the surrounding text color (lime for headings, slate for body, etc.) without needing a prop.
+
+**Not yet done:** steps 5-9. `npm run lint` and `npm run build` both pass clean at this point.
