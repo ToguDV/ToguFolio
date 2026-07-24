@@ -4,6 +4,7 @@
 - Vite 8 + React 19, ESM (`"type": "module"`).
 - React plugin: `@vitejs/plugin-react` (Oxc-based, not SWC).
 - Linter: `oxlint` with `react` + `oxc` plugins (`.oxlintrc.json`).
+- Tailwind v4 wired via `@tailwindcss/vite`; `@import "tailwindcss";` at the top of `src/index.css`. Use Tailwind utilities for layout/sizing/spacing. **Don't** use Tailwind color utilities — every color must reference the CSS custom properties in `src/styles/tokens.css` (e.g. `text-[var(--color-ink)]`, `bg-[var(--color-canvas)]`) so the dark theme stays single-sourced.
 - No tests, no formatter, no typecheck, no CI, no pre-commit hooks.
 
 ## Commands
@@ -16,16 +17,22 @@
 ## Layout
 - Entry HTML: `index.html` (root, references `/src/main.jsx`).
 - React entry: `src/main.jsx` mounts `<App />` into `#root` with `StrictMode`.
-- Single component: `src/App.jsx` (default export).
-- Styles: `src/index.css` (global entry — starts with `@import "tailwindcss";` and will aggregate `src/styles/tokens.css` + `src/styles/fonts.css` + `src/styles/base.css` per the project spec below), `src/App.css`.
-- Tailwind v4 is wired: `@tailwindcss/vite` registered in `vite.config.js`, `@import "tailwindcss";` at the top of `src/index.css`. Use Tailwind utilities for layout/sizing/spacing. **Don't** use Tailwind color utilities — every color must reference the CSS custom properties in `src/styles/tokens.css` (e.g. `text-[var(--color-ink)]`, `bg-[var(--color-canvas)]`) so the dark theme stays single-sourced.
-- Static assets served from `public/` (`favicon.svg`, `icons.svg`); bundled images in `src/assets/`.
-- App.jsx references SVG icons via `<use href="/icons.svg#id">` — IDs (`documentation-icon`, `social-icon`, `github-icon`, `discord-icon`, `x-icon`, `bluesky-icon`) must exist in `public/icons.svg`.
+- Single composition root: `src/App.jsx` (`<Shell><Nav/><main>…sections…</main><Footer/></Shell>`).
+- Styles: `src/index.css` (`@import "tailwindcss";` + aggregates `src/styles/tokens.css` + `src/styles/fonts.css` + `src/styles/base.css`), per-component CSS modules co-located next to the component.
+- Static assets served from `public/` (`favicon.svg`, `icons.svg`, `band-divider-mask.svg`); bundled source under `src/assets/` (currently leftover Vite/React/hero PNGs — unused by components, safe to delete).
 
 ## Gotchas
 - **React Compiler is intentionally disabled** (per README) for dev/build perf. Don't add `babel-plugin-react-compiler` without discussion.
 - **Linter is oxlint, not ESLint.** No autofix configured; rules enforced are only `react/rules-of-hooks` (error) and `react/only-export-components` (warn, with `allowConstantExport: true`).
 - **No test runner.** Adding tests requires choosing and installing one (e.g. vitest); none is set up.
+- **All canvas effects short-circuit on `prefers-reduced-motion`** (return early in `useEffect`). Caret and CSS animations are killed via the global rule in `base.css`. The static visual still renders — motion is what's removed, not content.
+- **Two animation systems coexist:** `useEffect`-driven canvas effects (`useMatrixRain`, `useAsciiConstellation`) and a CSS `@keyframes` blinking caret (`Caret.module.css`). Both respect reduced-motion; don't add new motion without a `prefers-reduced-motion` branch.
+- **Mouse / touch listeners on canvas effects are attached to the enclosing `<section>`** (via `findSection(canvas)` in `useAsciiConstellation`), not the canvas itself, so the hit area covers the whole band even when the canvas is `pointer-events: none`. Don't change to `canvas.addEventListener` without re-checking the bounds.
+- **`AsciiFrameAnimator` re-renders the `<pre>` with a `key={current}`** so each frame remounts (cheap, no diffing). Trigger modes: `hover` (focusable), `inView` (uses `useInView`), `always` (loops forever). Frames are passed as already-joined strings.
+- **`Button` uses inline Tailwind utility classes** (`STYLES` const in the file), not a CSS module. New variants should be added there, not as a module class. It stays polymorphic (`<a>` if `href` else `<button>`) and prepends a `> ` arrow.
+- **`Keycap` is the bracketed `[label]`-style** for inline project links (`tour`, `source`) and contact socials. `primary` is bold lime, `secondary` is muted slate. Replaces the old plain `<a>` text links in `ProjectCard` and `Contact`.
+- **Project data lives in `data/projects.js`** (per the rule "data/*.js is plain JS, no JSX"). The older `sections/Projects/projects.data.js` path in some architecture diagrams is stale — the canonical location is `data/projects.js`.
+- **`PULSE_FRAMES` in `data/animations.js` is currently unused** — defined and exported, no consumer yet. Safe to consume or delete.
 
 ---
 
@@ -36,11 +43,13 @@ Personal portfolio to showcase projects. Single page, scroll-based, organized as
 
 ### Visual Concept
 Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and reframed as a **terminal / Matrix experience**:
-- **No raster images.** Every visual is ASCII art, monospaced text, or CSS geometry. Project previews are rendered as ASCII mockups, not screenshots.
-- **Terminal chrome.** Headlines feel like `cat`-ed logs, eyebrows look like shell prompts, buttons look like `> RUN` commands, sections look like `--section` flags.
-- **Matrix rain** in the background of selected bands (Hero, Hero CTA area). Subtle, low opacity, slow — not the 1999 screensaver. Optional fade with scroll.
-- **Blinking caret** on the active headline and on every interactive element on focus.
+- **No raster images in the UI.** Every visual is ASCII art, monospaced text, or canvas geometry. Project previews are ASCII mockups (animated for `wip` cards), not screenshots.
+- **Terminal chrome.** Headlines feel like `cat`-ed logs, eyebrows look like shell prompts (`$> …`), buttons look like `> RUN` commands, sections look like `--section` flags.
+- **Hero background = ASCII constellation** (mouse-reactive canvas of geometric glyphs linked by faint lines). Replaces the earlier Matrix-rain hero.
+- **Matrix rain reappears as a masked band divider** between Projects and About (`<BandDivider>` with `intensity="subtle"`).
+- **Blinking caret** on the active headline, at the end of the terminal panel in `About`, and on every interactive element on focus.
 - **Typewriter reveal** on hero copy and section headings (one-shot on mount, not loop).
+- **Animated ASCII critters** (bear sleeping in About, bunny raging on `wip` project cards, cat drinking coffee in the Footer signoff) via `AsciiFrameAnimator`.
 
 ### Design Tokens (dark theme, derived from `ghost.design.md`)
 
@@ -56,18 +65,18 @@ Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and ref
 | Ink muted | `--color-ink-mute` | `#84cc16` | lime-500 step |
 | Text on dark | `--color-text` | `#e5e7eb` | slate-200 |
 | Text muted on dark | `--color-text-mute` | `#9ca3af` | slate-400 |
-| CTA fill (primary button) | `--color-cta-bg` | `#d1ff19` | lime, used on CTA only — inverts Ghost convention since dark canvas already uses lime as text |
+| CTA fill (primary button) | `--color-cta-bg` | `#d1ff19` | lime, used on CTA only |
 | CTA text | `--color-cta-text` | `#0a0a0a` | canvas black |
 | Danger / accent | `--color-accent` | `#f87171` | red-400, reserved for destructive or "live" indicators |
 
 **Rationale for the inversion:** Ghost puts lime in the eyebrow and near-black in the CTA. On a dark canvas, that collapses — near-black on near-black is invisible. So the lime moves to the primary text tier (headings, terminal prompt) and the CTA inverts to lime-on-black. Eyebrow tier becomes a dimmer lime-soft `#a3e635` so the hierarchy still reads.
 
 ### Typography
-- **Mono everywhere.** Drop the InterDisplay/InterVariable split. One family: `JetBrains Mono` (or `Fira Code`) as primary, `ui-monospace, Menlo, monospace` as fallback. Self-hosted via `@fontsource/jetbrains-mono` to avoid the FOUT.
-- **Size scale (kept from Ghost, retuned for mono):**
-  - `display-xl` 72px / 700 / -2px (hero — reduced from 96px because mono is wider)
+- **Mono everywhere.** One family: `JetBrains Mono` (self-hosted via `@fontsource/jetbrains-mono` — 400 + 700), with `ui-monospace, Menlo, monospace` as fallback. No FOUT.
+- **Size scale:**
+  - `display-xl` 72px / 700 / -2px (hero)
   - `display-lg` 36px / 700 / -1px (section headings)
-  - `display-md` 24px / 700 / -0.5px
+  - `display-md` 24px / 700 / -0.5px (project titles)
   - `body-lg` 18px / 400 (lede)
   - `body-md` 15px / 400
   - `caption` 13px / 400
@@ -78,70 +87,83 @@ Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and ref
 
 | Effect | Where | How |
 |---|---|---|
-| Matrix rain | Hero background, behind headline | `<canvas>` driven by a `useMatrixRain` hook. Renders columns of falling chars (Katakana half-width + Latin + digits) at ~30fps, opacity 0.15, head character bright lime, tail fading to canvas color. Pauses on `prefers-reduced-motion`. |
-| Blinking caret | Hero headline, focus rings on links/buttons | CSS `@keyframes blink` on a `::after` pseudo-element (1ch wide block). Step-end timing, 1.06s period. |
-| Typewriter | Hero h1, section h2s | `useTypewriter(text, { speed: 35, startDelay: 200 })` hook. Renders progressively, appends a caret that stops blinking when done. |
-| ASCII art | Hero, project cards | Static `<pre>` blocks with monospaced string art. No images, no SVGs. Bundled as TS string literals in `src/data/ascii.js`. |
-| Glitch-on-hover | Section h2s on hover | 1-frame CSS `transform: translateX(2px)` + color jitter. Cheap, no animation lib. |
-| Scanline overlay | Optional global layer | Repeating linear gradient, `mix-blend-mode: overlay`, opacity 0.03. Toggleable via `data-effect="scanlines"` on `<body>`. |
+| Ascii constellation | Hero background, behind headline | `<canvas>` driven by `useAsciiConstellation`. Tiered glyph set (◆/◇/*/·), per-node drift, link lines between nearby nodes, mouse radius attractor with soft halo + crosshair. Pauses on `prefers-reduced-motion`. |
+| Matrix rain | Band divider between Projects and About | `<canvas>` driven by `useMatrixRain` with the `subtle` profile (`headAlpha: 0.1`, `speed: 0.3`, `density: 0.5`), masked by `/band-divider-mask.svg` so the rain fades at the edges. Includes rare multi-char strings (e.g. `( ͡° ͜ʖ ͡°)`, `¯\_(ツ)_/¯`, `TOGU ESTUVO AQUI`). |
+| Blinking caret | Hero headline, About terminal tail, focus rings | CSS `@keyframes caret-blink` on `Caret.module.css` (1ch wide block, `step-end`, 1.06s). `prefers-reduced-motion` → static opaque caret. |
+| Typewriter | Hero h1, section h2s | `useTypewriter(text, { speed, startDelay })`. Renders progressively, appends a caret that stops blinking when done. Honors reduced motion by jumping to final state. |
+| ASCII art (static) | Project cards, About terminal body | `AsciiBlock` renders a `<pre>` with `ink` / `ink-soft` / `ink-mute` tones. |
+| ASCII art (animated) | About terminal (bear), `wip` project cards (bunny), Footer signoff (cat) | `AsciiFrameAnimator` with `trigger="inView"` / `trigger="always"`. Frame set is `frames` (array of pre-joined strings), `fps` controls cadence. |
+| Bracketed keycaps | Inline project + contact links | `Keycap` renders `[label]`. `primary` lime bold, `secondary` slate muted. |
 
-### Component Architecture (single-responsibility, one file per component)
+### Component Architecture (one file per component, CSS module co-located)
 
 ```
 src/
-  main.jsx                          # entry, mounts <App />
-  App.jsx                           # composition root, no markup
+  main.jsx                                # entry, mounts <App />
+  App.jsx                                 # composition root, no markup
+  App.css                                 # minimal, imported by App.jsx
+  index.css                               # @tailwind + global imports
   styles/
-    tokens.css                      # CSS custom properties (colors, spacing, radii)
-    fonts.css                       # @font-face declarations
-    base.css                        # reset + body defaults
+    tokens.css                            # CSS custom properties (colors, spacing, radii, type scale)
+    fonts.css                             # @import jetbrains-mono 400/700
+    base.css                              # reset + body + reduced-motion override
   components/
     layout/
-      Shell.jsx                      # outermost wrapper, sets bg + scanlines
-      Nav.jsx                        # top nav (logo + section links)
-      Footer.jsx                     # colophon + social links
-      Section.jsx                    # editorial band wrapper, props: id, tone
+      Shell.jsx                           # outermost wrapper, sets bg + column flex
+      Nav.jsx + Nav.module.css            # sticky top nav (brand + section anchors)
+      Footer.jsx + Footer.module.css      # colophon + social links + cat signoff
+      Section.jsx                         # editorial band wrapper, props: id, tone
+      BandDivider.jsx + BandDivider.module.css  # masked matrix-rain band, optional label
     effects/
-      MatrixRain/
-        MatrixRain.jsx               # <canvas> background
-        useMatrixRain.js             # animation loop hook
-        chars.js                     # char set + helpers
+      MatrixRain/                         # canvas rain, props for intensity profile
+        MatrixRain.jsx
+        useMatrixRain.js                  # animation loop, DPR + ResizeObserver
+        chars.js                          # KATAKANA + LATIN + DIGITS + SYMBOLS + rare strings
+        MatrixRain.module.css
+      AsciiConstellation/                 # hero background, mouse-reactive
+        AsciiConstellation.jsx
+        useAsciiConstellation.js          # nodes, links, mouse attractor, crosshair
+        AsciiConstellation.module.css
+      AsciiFrameAnimator/                 # frame-based ASCII animator
+        AsciiFrameAnimator.jsx            # trigger: 'hover' | 'inView' | 'always'
+        useFrameAnimator.js               # setInterval driver, reduced-motion safe
+        AsciiFrameAnimator.module.css
+      AsciiBlock.jsx + AsciiBlock.module.css    # static <pre> with tone
+      Caret.jsx + Caret.module.css        # blinking block caret
       Typewriter/
-        Typewriter.jsx               # renders text char-by-char
-        useTypewriter.js             # timing hook
-      Caret.jsx                     # blinking block caret
-      AsciiBlock.jsx                # renders <pre> with optional color
-      Scanlines.jsx                 # global overlay
+        Typewriter.jsx
+        useTypewriter.js
     sections/
       Hero/
-        Hero.jsx                     # composes headline + lede + ascii + rain
-        HeroAscii.jsx                # the big ASCII art piece
+        Hero.jsx + Hero.module.css        # composes eyebrow + headline + lede + constellation
       Projects/
-        Projects.jsx                 # section header + grid
-        ProjectCard.jsx              # one project (ascii preview + meta)
-        projects.data.js             # array of project objects
+        Projects.jsx + Projects.module.css
+        ProjectCard.jsx + ProjectCard.module.css
       About/
-        About.jsx
-        AboutTerminal.jsx            # faux-interactive cat/uname output
+        About.jsx + About.module.css
+        AboutTerminal.jsx + AboutTerminal.module.css  # macOS-style frame + bear
       Contact/
         Contact.jsx
     ui/
-      Eyebrow.jsx                   # shell-prompt label
-      Heading.jsx                   # h1/h2 with lime + caret
-      Button.jsx                    # primary CTA (lime fill, monospace)
-      Link.jsx                      # inline `> link` style
-      Tag.jsx                       # tech-stack tag chip
+      Eyebrow.jsx                         # shell-prompt label ($> …)
+      Heading.jsx                         # h1/h2/h3 with optional typewriter
+      Button.jsx                          # primary/ghost; polymorphic <a>/<button>; > prefix
+      Link.jsx                            # inline > link
+      Tag.jsx                             # tech-stack chip
+      Keycap.jsx + Keycap.module.css      # [label] bracketed link/button
+      CommandList.jsx + CommandList.module.css  # flex row with leading > prompt
   data/
-    projects.js                     # project list (id, title, ascii, stack, url, repo)
-    ascii.js                        # ascii art strings (hero, dividers, logos)
+    projects.js                           # project list (id, title, ascii, stack, url, repo, status)
+    ascii.js                              # PROJECT_ASCII, ABOUT_OUTPUT
+    animals.js                            # ts-animal (MIT) frames: bear/bunny/cat
+    animations.js                         # PULSE_FRAMES (currently unused)
   hooks/
-    usePrefersReducedMotion.js      # shared
-    useInView.js                    # IntersectionObserver wrapper
-  index.css                         # @tailwind (when wired) + global imports
+    useInView.js                          # IntersectionObserver wrapper, returns [ref, boolean]
+  assets/                                 # bundled source (currently leftover react.svg, vite.svg, hero.png — unused)
 ```
 
 **Rules:**
-- No file exports more than one React component. Co-locate the component's own CSS module (`Hero.module.css`) next to it.
+- No file exports more than one React component. Co-locate the component's own CSS module next to it.
 - `data/*.js` is plain JS, no JSX. Components import data; data never imports components.
 - Hooks live next to the component that owns them, OR in `src/hooks/` if shared by 2+.
 - `App.jsx` is a flat composition list of sections — no business logic.
@@ -149,36 +171,38 @@ src/
 
 ### Band Rhythm (mirrors Ghost's editorial spread pattern)
 
-| # | Section | Tone | Background |
-|---|---|---|---|
-| 1 | Hero | dark + rain | canvas |
-| 2 | Projects | surface | surface |
-| 3 | About | dark + scanlines | canvas |
-| 4 | Contact | surface | surface |
-| Footer | colophon | dark | canvas |
+| # | Section | Tone | Background | Notes |
+|---|---|---|---|---|
+| 1 | Hero | dark | canvas | `<AsciiConstellation>` behind, typewriter h1, eyebrow `$> portfolio --init` |
+| 2 | Projects | surface | surface | 1/2-col grid, cards use `AsciiBlock` (live/archived) or `AsciiFrameAnimator` (`wip` → bunny) |
+| — | BandDivider | canvas | canvas | Masked MatrixRain, label `-- section --break` |
+| 3 | About | dark | canvas | Eyebrow `cat about.txt`, terminal panel with bear + blinking caret |
+| 4 | Contact | surface | surface | Mailto `Button`, GitHub/LinkedIn as `Keycap` |
+| Footer | colophon | canvas | canvas | Build line, deploy date, ts-animal attribution, cat-coffee signoff |
 
-Each band is flush-edged (no gradients between them). `Section` component handles the `padding: 72px 24px` per Ghost spec, retuned to mono-friendly 64px.
+Each band is flush-edged (no gradients between them). `Section` handles the `padding: 64px` (token `--section-padding-y`) per band, and `scroll-mt-[var(--nav-height)]` so anchored sections clear the sticky Nav.
 
-### Content Model (projects.data.js shape)
+### Content Model (`src/data/projects.js`)
 
 ```js
 {
   id: 'string',
   title: 'string',
-  ascii: 'string',          // multi-line ASCII art
+  ascii: 'string',          // optional inline ASCII art (not currently rendered — cards use shared PROJECT_ASCII)
   stack: ['react', 'vite'], // for <Tag> chips
   description: 'string',    // 1-2 sentence lede
-  url: 'https://...',       // optional live link
-  repo: 'https://...',      // optional repo link
-  status: 'live' | 'wip' | 'archived'
+  url: 'https://...',       // optional live link → renders a primary <Keycap>tour</Keycap>
+  repo: 'https://...',      // optional repo link → renders a secondary <Keycap>source</Keycap>
+  status: 'live' | 'wip' | 'archived'   // live/archived → static ASCII, wip → bunny animator
 }
 ```
 
 ### Accessibility & Motion
-- Respect `prefers-reduced-motion: reduce`: kill rain, kill typewriter (render final state immediately), kill caret blink (static caret).
-- All interactive elements are real `<a>`/`<button>`. ASCII art is decorative — wrapped in `aria-hidden="true"` when adjacent to semantic text.
-- Color contrast: lime `#d1ff19` on canvas `#0a0a0a` ≈ 15.8:1 (AAA). Slate-200 on canvas ≈ 14:1. Safe.
-- Focus rings: 2px solid lime, `outline-offset: 2px`. Never remove outline.
+- Respect `prefers-reduced-motion: reduce`: kill constellation, kill matrix rain, kill frame animator (render first frame statically), kill typewriter (jump to final state), kill caret blink (static caret). Global `scroll-behavior` also goes to `auto`.
+- All interactive elements are real `<a>`/`<button>`. Decorative ASCII wrapped in `aria-hidden="true"`.
+- Color contrast: lime `#d1ff19` on canvas `#0a0a0a` ≈ 15.8:1 (AAA). Slate-200 on canvas ≈ 14:1.
+- Focus rings: 2px solid lime, `outline-offset: 2px` (global in `base.css`). The `AsciiFrameAnimator hover` trigger also exposes a `focus-visible` outline so keyboard users get the same affordance.
+- `AsciiConstellation` is `pointer-events: none` on the canvas layer so it never blocks clicks on the hero content.
 
 ### Out of Scope (for v1)
 - No routing (single page).
@@ -187,82 +211,37 @@ Each band is flush-edged (no gradients between them). `Section` component handle
 - No analytics.
 - No blog, no contact form backend (mailto: only).
 - No tests (per stack gotcha).
+- No light theme (the dark/terminal aesthetic is the point).
+- No raster imagery (the canvas effects are the only "graphics"; the leftover PNGs/SVGs in `src/assets/` and `public/icons.svg` are not referenced by any component and can be deleted).
 
-### Implementation Order (when we start coding)
-1. ~~Wire Tailwind v4 in `vite.config.js` + `src/index.css` (decided: wire it, not remove).~~ ✅
-2. ~~Add `@fontsource/jetbrains-mono` (decided).~~ ✅
-3. ~~`styles/tokens.css` + `styles/base.css`.~~ ✅
-4. ~~`components/effects/Caret.jsx` + `Typewriter.jsx` (simplest, sets the visual language).~~ ✅
-5. ~~`components/layout/Section.jsx` + `Shell.jsx`.~~ ✅
-6. `components/sections/Hero/` with ASCII art + MatrixRain. DONE TOO ✅
-7. ~~Remaining sections.~~ ✅
-8. ~~Wire `Nav.jsx` smooth-scroll to section ids.~~ ✅
-9. ~~Verify with `npm run lint` and `npm run build`.~~ ✅
+### Implementation Status
 
+**All planned steps complete.** `npm run lint` (oxlint, no warnings) and `npm run build` (~216 kB JS / ~45 kB CSS gzip 68/20 kB) both pass clean.
 
+History (chronological, condensed from git log):
 
+1. ✅ Init + Tailwind v4 + JetBrains Mono + tokens/base styles.
+2. ✅ `Caret` + `Typewriter` + `AsciiBlock` (visual language).
+3. ✅ `Section` + `Shell` (band rhythm + outer column).
+4. ✅ `Hero` with full-screen `<MatrixRain>` + ASCII headline.
+5. ✅ `ui/` primitives (`Eyebrow`, `Heading`, `Button`, `Link`, `Tag`).
+6. ✅ `Projects` + `ProjectCard` + `data/projects.js` + `data/ascii.js`.
+7. ✅ `About` + `AboutTerminal` + `Contact`.
+8. ✅ `Nav` (sticky) + `Footer` + `scroll-behavior` / `scroll-mt` plumbing.
+9. ✅ `npm run lint` + `npm run build` green at v1.
+10. ✅ **Replaced hero MatrixRain with `AsciiConstellation`** (mouse-reactive glyph network) — `useAsciiConstellation` + `AsciiConstellation.jsx` + `AsciiConstellation.module.css`. Hero now feels like a calm node graph instead of a rain storm; per-node tier (◆/◇/*/·), faint link lines, mouse halo + crosshair.
+11. ✅ **`AsciiFrameAnimator` + `useFrameAnimator`** — frame-based ASCII animator with `hover` / `inView` / `always` triggers, `prefers-reduced-motion` safe. Reused for the sleeping bear (`AboutTerminal`), the raging bunny on `wip` project cards, and the cat-coffee Footer signoff.
+12. ✅ **`BandDivider`** — masked MatrixRain band between Projects and About, with optional `-- section --break` label. New public asset `band-divider-mask.svg`. `useMatrixRain` gained a `subtle` profile (lower alpha, density, speed).
+13. ✅ **`Keycap` + `CommandList`** — `[label]` bracketed link/button (`primary` / `secondary`) and a flex row with a leading `> ` prompt. `ProjectCard` and `Contact` now use them for inline `tour` / `source` and GitHub/LinkedIn.
+14. ✅ **`Button.jsx` rewritten with Tailwind utility classes** (no CSS module). `primary` and `ghost` variants; still polymorphic and still prepends `> `. Class-join uses the same `[…].filter(Boolean).join(' ')` pattern.
+15. ✅ **`data/animals.js`** — frames ported from [ts-animal](https://github.com/ts-animal/ts-animal) (MIT): `BEAR_SLEEPING_FRAMES`, `BUNNY_ANGRY_FRAMES`, `CAT_COFFEE_FRAMES`. Footer credits the source.
+16. ✅ **`data/animations.js`** — `PULSE_FRAMES` defined, currently unused (left as a hook for future sections).
+17. ✅ **`hooks/useInView.js`** — shared `IntersectionObserver` wrapper, used by `AsciiFrameAnimator` for the `inView` trigger.
+18. ✅ **MatrixRain char set extended** with rare multi-char strings `( ͡° ͜ʖ ͡°)`, `¯\_(ツ)_/¯`, `TOGU ESTUVO AQUI` at 0.5% probability. Multi-char glyphs are measured and "claimed" across multiple cells so neighbouring columns don't overdraw them.
+19. ✅ **Footer signoff** swaps the static `>` for an always-animating `CAT_COFFEE_FRAMES` `AsciiFrameAnimator`.
 
-**Files added/changed in this batch (step 5):**
-
-- `src/components/layout/Section.jsx` — editorial band wrapper. Props: `id`, `tone` (`'dark'` | `'surface'`, default `'dark'`), `children`, `className`. Renders `<section>` with tone-mapped background + `py-[var(--section-padding-y)]`, and an inner `<div>` with `mx-auto max-w-3xl px-[var(--section-padding-x)]` so the column is centralized.
-- `src/components/layout/Shell.jsx` — outermost wrapper. Renders a `<div className="flex min-h-screen flex-col bg-[var(--color-canvas)] text-[var(--color-text)]">`. Accepts `className` for escape hatches. Scanlines effect deliberately omitted (lives in `components/effects/Scanlines.jsx`, future step).
-- `src/App.jsx` — composition is now `<Shell><Section id="hero" tone="dark">…</Section><Section id="band" tone="surface">…</Section></Shell>`. The dark band keeps the prior typewriter demo; the surface band is a one-line proof of the band-rhythm flush-edge.
-
-**Deviations / decisions:**
-
-- `Section`'s inner column width is `max-w-3xl` (768px) to match the existing demo column. Wider bands can override via `className="max-w-5xl"` etc. — not tokenized because no other band asks for a different width yet.
-- `TONES` lives as a module-level const inside `Section.jsx`. Allowed under `react/only-export-components` since `allowConstantExport: true` is set in `.oxlintrc.json`.
-- `Shell`'s `flex min-h-screen flex-col` is forward-looking for `Nav` / `Footer` siblings (steps 8+) — `Nav` will sit at the top and `Footer` at the bottom of the column with the page bands in between.
-- The class-join idiom `[…].filter(Boolean).join(' ')` is used in both components for predictable `className` overrides (user-supplied class always wins via source order).
-- `npm run lint` and `npm run build` both pass clean at this point.
-
-**Done (steps 6-9):**
-
-- ✅ Step 6: `src/components/sections/Hero/` + `MatrixRain/` cluster + `AsciiBlock`. Hero composes `<Section id="hero" tone="dark">` with `<MatrixRain>` behind, eyebrow `$> portfolio --init`, typewriter h1 `Hello, world.`, lede, and `HERO_ASCII`. `MatrixRain.jsx` mounts an absolutely-positioned canvas; `useMatrixRain.js` runs a 30fps loop (DPR-aware, `ResizeObserver`-driven, per-column head + fading tail, head character bright lime, soft-lime tail, `prefers-reduced-motion` short-circuit). `chars.js` = Katakana half-width + Latin + digits + symbols with rare `( ͡° ͜ʖ ͡°)` / `¯\_(ツ)_/¯` strings. `AsciiBlock.jsx` = shared `<pre>` renderer with `ink` / `ink-soft` / `ink-mute` tones.
-- ✅ Step 7: Remaining sections + UI primitives + data. **UI** (`src/components/ui/`): `Eyebrow` (shell-prompt label, `prompt` + `children`), `Heading` (h1/h2/h3 with lime; `typewriter` prop wraps text in `<Typewriter>`), `Button` (primary/ghost; renders `<a>` if `href` else `<button>`; monospace uppercase with `> ` prefix), `Link` (inline `> text`; `tone` + `external`), `Tag` (monospace chip with hairline border). **Data**: `src/data/projects.js` (4 placeholders — `ghost-design-system`, `terminal-portfolio`, `cli-task-runner`, `ascii-renderer` — with `live` / `wip` / `archived` status); `src/data/ascii.js` extended with `PROJECT_ASCII` (reusable build/ship block) and `ABOUT_OUTPUT` (`uname` / `cat about.txt` block). **Sections**: `Projects/Projects.jsx` (eyebrow + typewriter h2 + 1/2-col grid, `max-w-5xl` override) + `ProjectCard.jsx` (ASCII preview + status badge + title + description + stack chips + `tour` / `source` links); `About/About.jsx` + `AboutTerminal.jsx` (frame with three macOS-style dots + `<pre>` body + `<Caret>` at the end); `Contact/Contact.jsx` (eyebrow + typewriter h2 + lede + `mailto:` button + GitHub / LinkedIn links).
-- ✅ Step 8: `src/components/layout/Nav.jsx` (sticky top, `~/portfolio` brand → `#hero`, three anchors `#projects` / `#about` / `#contact` with `> ` pseudo-element prefix, blur + translucent canvas background, hairline bottom border, `z-index: 10`) + `Nav.module.css`. `Footer.jsx` colofón (build line, deploy date, copyright, GitHub / LinkedIn links). Smooth scroll wired in `src/styles/base.css` via `scroll-behavior: smooth` + `scroll-padding-top: var(--nav-height)`; the existing `prefers-reduced-motion` override sets `scroll-behavior: auto !important`. New `--nav-height: 56px` token. `Section.jsx` adds `scroll-mt-[var(--nav-height)]` so anchored sections land below the sticky Nav.
-- ✅ Step 9: `npm run lint` (oxlint, clean — no warnings) and `npm run build` (Vite 8, 52 modules, `dist/index-*.js` 206.84 kB / gzip 65.60 kB, CSS 42.16 kB / gzip 19.76 kB) both pass clean.
-
-**Files added/changed in this batch (steps 6-9):**
-
-Sections:
-- `src/components/sections/Hero/{Hero,HeroAscii}.jsx` + `Hero.module.css`.
-- `src/components/sections/Projects/{Projects,ProjectCard}.jsx` + `Projects.module.css` + `ProjectCard.module.css`.
-- `src/components/sections/About/{About,AboutTerminal}.jsx` + `About.module.css` + `AboutTerminal.module.css`.
-- `src/components/sections/Contact/Contact.jsx`.
-
-Effects (Hero):
-- `src/components/effects/MatrixRain/{MatrixRain,useMatrixRain,chars}.js` + `MatrixRain.module.css`.
-- `src/components/effects/AsciiBlock.jsx` + `AsciiBlock.module.css`.
-
-UI primitives:
-- `src/components/ui/{Eyebrow,Heading,Button,Link,Tag}.jsx`.
-
-Layout:
-- `src/components/layout/Nav.jsx` + `Nav.module.css`.
-- `src/components/layout/Footer.jsx` + `Footer.module.css`.
-- `src/components/layout/Section.jsx` — added `scroll-mt-[var(--nav-height)]`.
-
-Data:
-- `src/data/projects.js` — new (4 placeholders).
-- `src/data/ascii.js` — added `PROJECT_ASCII` and `ABOUT_OUTPUT`.
-
-Styles:
-- `src/styles/tokens.css` — added `--nav-height: 56px`.
-- `src/styles/base.css` — `scroll-behavior: smooth` + `scroll-padding-top: var(--nav-height)` on `html`.
-
-Root:
-- `src/App.jsx` — composition: `<Shell><Nav /><main><Hero/><Projects/><About/><Contact/></main><Footer/></Shell>`.
-
-**Deviations / decisions (steps 6-9):**
-
-- Project cards use a **single reusable ASCII block** (`PROJECT_ASCII`) — user-decided. Cards differ by title, description, stack, and a colored status badge (`live` lime / `wip` lime-soft / `archived` muted).
-- **Placeholders** in `projects.js` (4 ficticios) and the contact / about copy (`example.com`, `<your city>`) — user-decided. Same shape, no component changes needed to swap in real content.
-- Project data lives in `data/projects.js` (per the rule "data/*.js is plain JS, no JSX"), not in `sections/Projects/projects.data.js` as the architecture tree currently lists. The tree shows both locations — the canonical one going forward is `data/projects.js`. (The tree under "Component Architecture" still needs a small cleanup; flagged for next pass.)
-- `Heading` accepts `text` + `typewriter` so section h2s fire the one-shot reveal on mount; `children` still works for plain headings.
-- `Button` is polymorphic: `<a>` when `href` is set, `<button>` otherwise — keeps the `> ` CTA prefix uniform for `mailto:` + future actions.
-- The About section sits on the canvas tone but does **not** enable scanlines — the optional `data-effect="scanlines"` global overlay is not implemented in this batch (no current content asked for it; `Scanlines.jsx` from the architecture tree is still a TODO).
-- `Nav` uses `position: sticky; top: 0` (not `fixed`) so page flow is preserved and there's no magic body padding-top. Anchor offset is handled by `scroll-mt-[var(--nav-height)]` on each Section.
-- `react/only-export-components` is clean — no new warnings; `TONES` const inside `Section.jsx` is already covered by `allowConstantExport: true`.
-
-**Status: all 9 steps complete.** `npm run lint` + `npm run build` both green.
+**Likely next ideas (not in scope unless asked):**
+- Wire `PULSE_FRAMES` somewhere (e.g. a `loading` state in Contact, or a stand-alone "extras" section).
+- Delete unused `src/assets/{react,vite,hero}.{svg,png}` and `public/icons.svg` (no consumer).
+- Add an `aria-live="polite"` announcement when the typewriter finishes, for screen readers.
+- Add an `IntersectionObserver` to defer the `AsciiConstellation` mount until the hero is in view (currently mounts immediately on `useEffect`).
