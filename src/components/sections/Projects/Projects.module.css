@@ -1,5 +1,10 @@
-.header {
+.headerWrap {
+  max-width: 48rem;
+  margin-inline: auto;
   margin-bottom: 48px;
+}
+
+.header {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -9,6 +14,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
+  max-width: var(--grid-max-w);
+  margin-inline: auto;
 }
 
 @media (min-width: 1024px) {

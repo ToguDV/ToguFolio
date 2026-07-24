@@ -48,7 +48,7 @@ Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and ref
 - **Hero background = ASCII constellation** (mouse-reactive canvas of geometric glyphs linked by faint lines). Replaces the earlier Matrix-rain hero.
 - **Matrix rain reappears as a masked band divider** between Projects and About (`<BandDivider>` with `intensity="subtle"`).
 - **Blinking caret** on the active headline, at the end of the terminal panel in `About`, and on every interactive element on focus.
-- **Typewriter reveal** on hero copy and section headings (one-shot on mount, not loop).
+- **Typewriter reveal** on hero copy and section headings (scroll-triggered via `useInView`, fires **once** per heading — latched, doesn't re-run if the user scrolls back).
 - **Animated ASCII critters** (bear sleeping in About, bunny raging on `wip` project cards, cat drinking coffee in the Footer signoff) via `AsciiFrameAnimator`.
 
 ### Design Tokens (dark theme, derived from `ghost.design.md`)
@@ -90,7 +90,7 @@ Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and ref
 | Ascii constellation | Hero background, behind headline | `<canvas>` driven by `useAsciiConstellation`. Tiered glyph set (◆/◇/*/·), per-node drift, link lines between nearby nodes, mouse radius attractor with soft halo + crosshair. Pauses on `prefers-reduced-motion`. |
 | Matrix rain | Band divider between Projects and About | `<canvas>` driven by `useMatrixRain` with the `subtle` profile (`headAlpha: 0.1`, `speed: 0.3`, `density: 0.5`), masked by `/band-divider-mask.svg` so the rain fades at the edges. Includes rare multi-char strings (e.g. `( ͡° ͜ʖ ͡°)`, `¯\_(ツ)_/¯`, `TOGU ESTUVO AQUI`). |
 | Blinking caret | Hero headline, About terminal tail, focus rings | CSS `@keyframes caret-blink` on `Caret.module.css` (1ch wide block, `step-end`, 1.06s). `prefers-reduced-motion` → static opaque caret. |
-| Typewriter | Hero h1, section h2s | `useTypewriter(text, { speed, startDelay })`. Renders progressively, appends a caret that stops blinking when done. Honors reduced motion by jumping to final state. |
+| Typewriter | Hero h1, section h2s | `<Typewriter>` self-cables `useInView` on its own `<span>` and latches an `armed` flag, then passes it to `useTypewriter(text, { speed, startDelay, start })`. Renders progressively, appends a caret that stops blinking when done. Honors reduced motion by jumping to final state (still waits for inView). Threshold/rootMargin overridable via props. |
 | ASCII art (static) | Project cards, About terminal body | `AsciiBlock` renders a `<pre>` with `ink` / `ink-soft` / `ink-mute` tones. |
 | ASCII art (animated) | About terminal (bear), `wip` project cards (bunny), Footer signoff (cat) | `AsciiFrameAnimator` with `trigger="inView"` / `trigger="always"`. Frame set is `frames` (array of pre-joined strings), `fps` controls cadence. |
 | Bracketed keycaps | Inline project + contact links | `Keycap` renders `[label]`. `primary` lime bold, `secondary` slate muted. |

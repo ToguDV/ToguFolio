@@ -3,7 +3,7 @@ const TONES = {
   surface: 'bg-[var(--color-surface)]',
 };
 
-export default function Section({ id, tone = 'dark', children, className = '' }) {
+export default function Section({ id, tone = 'dark', children, className = '', wide = false }) {
   return (
     <section
       id={id}
@@ -16,7 +16,14 @@ export default function Section({ id, tone = 'dark', children, className = '' })
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="mx-auto max-w-3xl px-[var(--section-padding-x)]">
+      <div
+        className={[
+          'mx-auto px-[var(--section-padding-x)]',
+          wide ? null : 'max-w-3xl',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         {children}
       </div>
     </section>

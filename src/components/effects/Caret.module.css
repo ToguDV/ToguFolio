@@ -8,6 +8,11 @@
   animation: caret-blink 1.06s step-end infinite;
 }
 
+.done {
+  visibility: hidden;
+  animation: none;
+}
+
 @keyframes caret-blink {
   0%,
   50% {

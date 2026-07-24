@@ -7,11 +7,13 @@ import styles from './Projects.module.css';
 
 export default function Projects({ id = 'projects' }) {
   return (
-    <Section id={id} tone="surface" className="max-w-5xl">
-      <header className={styles.header}>
-        <Eyebrow>ls --projects</Eyebrow>
-        <Heading level={2} text="Projects" typewriter />
-      </header>
+    <Section id={id} tone="surface" wide>
+      <div className={styles.headerWrap}>
+        <header className={styles.header}>
+          <Eyebrow>ls --projects</Eyebrow>
+          <Heading level={2} text="Projects" typewriter />
+        </header>
+      </div>
 
       <div className={styles.grid}>
         {projects.map((project) => (

@@ -7,11 +7,17 @@ function getPrefersReducedMotion() {
   return window.matchMedia(QUERY).matches;
 }
 
-export default function useTypewriter(text, { speed = 35, startDelay = 200 } = {}) {
+export default function useTypewriter(text, { speed = 35, startDelay = 200, start = true } = {}) {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    if (!start) {
+      setDisplayed('');
+      setDone(false);
+      return;
+    }
+
     if (getPrefersReducedMotion()) {
       setDisplayed(text);
       setDone(true);
@@ -39,7 +45,7 @@ export default function useTypewriter(text, { speed = 35, startDelay = 200 } = {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
     };
-  }, [text, speed, startDelay]);
+  }, [text, speed, startDelay, start]);
 
   return { displayed, done };
 }
