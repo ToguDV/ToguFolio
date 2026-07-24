@@ -39,3 +39,10 @@
 .link:focus-visible {
   color: var(--color-ink);
 }
+
+.signoff {
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.2;
+}

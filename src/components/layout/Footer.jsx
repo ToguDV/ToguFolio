@@ -1,3 +1,5 @@
+import AsciiFrameAnimator from '../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
+import { CAT_COFFEE_FRAMES } from '../../data/animals.js';
 import styles from './Footer.module.css';
 
 const BUILD_YEAR = new Date().getFullYear();
@@ -32,6 +34,29 @@ export default function Footer() {
           >
             &gt; linkedin
           </a>
+        </div>
+        <div className={styles.row}>
+          <span>
+            <span className={styles.prompt}>&gt;</span> ascii frames:{' '}
+            <a
+              className={styles.link}
+              href="https://github.com/ts-animal/ts-animal"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              ts-animal
+            </a>{' '}
+            <span className={styles.dim}>(mit)</span>
+          </span>
+        </div>
+        <div className={[styles.row, styles.signoff].filter(Boolean).join(' ')}>
+          <AsciiFrameAnimator
+            frames={CAT_COFFEE_FRAMES}
+            fps={500}
+            trigger="always"
+            tone="ink-soft"
+            ariaHidden
+          />
         </div>
       </div>
     </footer>

@@ -3,6 +3,15 @@
   overflow: hidden;
 }
 
+.constellation {
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
 .eyebrow {
   margin: 0 0 12px;
   font-size: var(--text-eyebrow);
@@ -34,8 +43,4 @@
 
 .arrow {
   color: var(--color-ink-mute);
-}
-
-.ascii {
-  margin-top: 48px;
 }

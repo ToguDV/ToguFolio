@@ -1,8 +1,10 @@
 import AsciiBlock from '../../effects/AsciiBlock.jsx';
+import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
 import CommandList from '../../ui/CommandList.jsx';
 import Keycap from '../../ui/Keycap.jsx';
 import Tag from '../../ui/Tag.jsx';
 import { PROJECT_ASCII } from '../../../data/ascii.js';
+import { BUNNY_ANGRY_FRAMES } from '../../../data/animals.js';
 import styles from './ProjectCard.module.css';
 
 const STATUS_TONE = {
@@ -20,11 +22,22 @@ const STATUS_LABEL = {
 export default function ProjectCard({ project }) {
   const { title, description, stack, status, url, repo } = project;
   const statusTone = STATUS_TONE[status] ?? STATUS_TONE.live;
+  const isWip = status === 'wip';
 
   return (
     <article className={styles.card}>
       <div className={styles.preview}>
-        <AsciiBlock tone="ink-soft">{PROJECT_ASCII}</AsciiBlock>
+        {isWip ? (
+          <AsciiFrameAnimator
+            frames={BUNNY_ANGRY_FRAMES}
+            fps={400}
+            trigger="inView"
+            tone="ink-soft"
+            className={styles.previewAscii}
+          />
+        ) : (
+          <AsciiBlock tone="ink-soft">{PROJECT_ASCII}</AsciiBlock>
+        )}
         <span className={[styles.status, statusTone].filter(Boolean).join(' ')}>
           {STATUS_LABEL[status] ?? status}
         </span>
