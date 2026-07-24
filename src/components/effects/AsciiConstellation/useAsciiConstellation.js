@@ -9,37 +9,31 @@ function prefersReducedMotion() {
 
 const DEFAULTS = {
   nodeCount: 38,
-  hubCount: 6,
   linkDistance: 150,
   mouseRadius: 200,
   mouseAttract: 0.45,
   drift: 0.08,
-  baseLinkAlpha: 0.18,
+  baseLinkAlpha: 0.42,
   hoverLinkAlpha: 0.95,
   anchorAlpha: 0.7,
   fps: 60,
 };
 
-const TIER_GLYPHS = [
-  ['0', '1'],
-  ['#', '$', '%', '&', '@', '◇', '0', '1'],
-  [
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    '+', '-', '*', '/', '=', '?', '!', '|', '~', '^',
-    'ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ', 'ｶ', 'ｷ', 'ｸ', 'ｹ', 'ｺ', 'ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ',
-    'ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ', 'ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ', 'ﾊ', 'ﾋ', 'ﾌ', 'ﾍ', 'ﾎ',
-    'ﾏ', 'ﾐ', 'ﾑ', 'ﾒ', 'ﾓ', 'ﾔ', 'ﾕ', 'ﾖ', 'ﾗ', 'ﾘ', 'ﾙ', 'ﾚ', 'ﾛ', 'ﾜ', 'ﾝ',
-  ],
-  ['·', '∘', '∶', '°', '⋅', '∴'],
+const GLYPHS = [
+  '0', '1'
 ];
 
-const TIER_ALPHA = [0.85, 0.6, 0.45, 0.3];
-const TIER_FONT = ['20px', '15px', '12px', '10px'];
+const NODE_ALPHA = 0.6;
+const NODE_FONT = '14px "JetBrains Mono", ui-monospace, Menlo, monospace';
+const TWINKLE_INTERVAL_MIN = 220;
+const TWINKLE_INTERVAL_MAX = 900;
+const TWINKLE_DURATION_MIN = 180;
+const TWINKLE_DURATION_MAX = 700;
+const TWINKLE_BURST_MIN = 1;
+const TWINKLE_BURST_MAX = 3;
 
-function pickFrom(tier) {
-  const arr = TIER_GLYPHS[tier];
-  return arr[Math.floor(Math.random() * arr.length)];
+function pickGlyph() {
+  return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
 }
 
 function rand(min, max) {
@@ -52,39 +46,20 @@ function readVar(name, fallback) {
   return v || fallback;
 }
 
-function makeNodes(count, hubCount, w, h) {
+function makeNodes(count, w, h) {
   const nodes = [];
-  const cx = w / 2;
-  const cy = h / 2;
-
-  for (let i = 0; i < hubCount; i++) {
-    const angle = (i / hubCount) * Math.PI * 2 + rand(0, 0.6);
-    const r = Math.min(w, h) * rand(0.18, 0.32);
-    nodes.push({
-      x: cx + Math.cos(angle) * r,
-      y: cy + Math.sin(angle) * r,
-      vx: (Math.random() - 0.5) * 0.05,
-      vy: (Math.random() - 0.5) * 0.05,
-      tier: 0,
-      phase: Math.random() * Math.PI * 2,
-      glyph: pickFrom(0),
-    });
-  }
-
-  for (let i = hubCount; i < count; i++) {
-    const tr = Math.random();
-    const tier = tr < 0.35 ? 1 : tr < 0.78 ? 2 : 3;
+  for (let i = 0; i < count; i++) {
     nodes.push({
       x: rand(20, w - 20),
       y: rand(20, h - 20),
       vx: (Math.random() - 0.5) * 0.16,
       vy: (Math.random() - 0.5) * 0.16,
-      tier,
       phase: Math.random() * Math.PI * 2,
-      glyph: pickFrom(tier),
+      glyph: pickGlyph(),
+      twinkle: 0,
+      twinkleDur: 1,
     });
   }
-
   return nodes;
 }
 
@@ -99,7 +74,7 @@ function findSection(start) {
 
 export default function useAsciiConstellation(canvasRef, options = {}) {
   const {
-    nodeCount, hubCount, linkDistance, mouseRadius, mouseAttract,
+    nodeCount, linkDistance, mouseRadius, mouseAttract,
     drift, baseLinkAlpha, hoverLinkAlpha, anchorAlpha, fps,
   } = { ...DEFAULTS, ...options };
 
@@ -123,7 +98,7 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
     const mouse = { x: -9999, y: -9999, active: false, intensity: 0 };
     let raf = 0;
     let lastTime = 0;
-    let lastFontTier = -1;
+    let twinkleTimer = rand(TWINKLE_INTERVAL_MIN, TWINKLE_INTERVAL_MAX);
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -133,31 +108,35 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       canvas.height = Math.max(1, Math.floor(rect.height * dpr));
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+      ctx.font = NODE_FONT;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
 
       if (nodes.length === 0) {
-        nodes = makeNodes(nodeCount, hubCount, width, height);
+        nodes = makeNodes(nodeCount, width, height);
       } else {
         for (const n of nodes) {
           n.x = Math.min(Math.max(n.x, 0), width);
           n.y = Math.min(Math.max(n.y, 0), height);
         }
       }
-
-      ctx.textBaseline = 'middle';
-      ctx.textAlign = 'center';
-      lastFontTier = -1;
-    }
-
-    function setFont(tier) {
-      if (tier === lastFontTier) return;
-      ctx.font = `${TIER_FONT[tier]} "JetBrains Mono", ui-monospace, Menlo, monospace`;
-      lastFontTier = tier;
     }
 
     function update(dt) {
       const target = mouse.active ? 1 : 0;
       mouse.intensity += (target - mouse.intensity) * 0.14;
       if (Math.abs(mouse.intensity - target) < 0.001) mouse.intensity = target;
+
+      twinkleTimer -= dt;
+      if (twinkleTimer <= 0) {
+        const burst = Math.floor(rand(TWINKLE_BURST_MIN, TWINKLE_BURST_MAX + 0.999));
+        for (let b = 0; b < burst; b++) {
+          const n = nodes[Math.floor(Math.random() * nodes.length)];
+          n.twinkle = 1;
+          n.twinkleDur = rand(TWINKLE_DURATION_MIN, TWINKLE_DURATION_MAX);
+        }
+        twinkleTimer = rand(TWINKLE_INTERVAL_MIN, TWINKLE_INTERVAL_MAX);
+      }
 
       const i = mouse.intensity;
       for (const n of nodes) {
@@ -168,6 +147,10 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
         if (n.y < 0) { n.y = 0; n.vy = -n.vy; }
         if (n.y > height) { n.y = height; n.vy = -n.vy; }
         n.phase += dt * 0.0014;
+
+        if (n.twinkle > 0) {
+          n.twinkle = Math.max(0, n.twinkle - dt / n.twinkleDur);
+        }
 
         if (i > 0.05) {
           const dx = mouse.x - n.x;
@@ -202,8 +185,8 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       if (alpha < 0.01) return;
 
       ctx.globalAlpha = alpha;
-      ctx.strokeStyle = ink;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = softInk;
+      ctx.lineWidth = 1.25;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
@@ -229,9 +212,13 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
     }
 
     function drawNode(n) {
-      const baseAlpha = TIER_ALPHA[n.tier];
-      let alpha = baseAlpha + 0.08 * Math.sin(n.phase);
+      let alpha = NODE_ALPHA + 0.08 * Math.sin(n.phase);
       let sizeMult = 1;
+
+      if (n.twinkle > 0) {
+        alpha = Math.min(1, alpha + n.twinkle * 0.5);
+        sizeMult = 1 + n.twinkle * 0.5;
+      }
 
       const i = mouse.intensity;
       if (i > 0.05) {
@@ -243,7 +230,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
         }
       }
 
-      setFont(n.tier);
       ctx.globalAlpha = alpha;
       ctx.fillStyle = ink;
 
@@ -261,13 +247,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
     function drawCursor() {
       const i = mouse.intensity;
       if (i < 0.05) return;
-
-      ctx.globalAlpha = 0.22 * i;
-      ctx.strokeStyle = softInk;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, mouseRadius, 0, Math.PI * 2);
-      ctx.stroke();
 
       ctx.globalAlpha = 0.7 * i;
       ctx.strokeStyle = softInk;
@@ -360,7 +339,7 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       target.removeEventListener('touchcancel', onTouchEnd);
     };
   }, [
-    canvasRef, nodeCount, hubCount, linkDistance, mouseRadius, mouseAttract,
+    canvasRef, nodeCount, linkDistance, mouseRadius, mouseAttract,
     drift, baseLinkAlpha, hoverLinkAlpha, anchorAlpha, fps,
   ]);
 }
