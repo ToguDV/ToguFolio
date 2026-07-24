@@ -7,7 +7,7 @@ import Keycap from '../../ui/Keycap.jsx';
 
 export default function Contact({ id = 'contact' }) {
   return (
-    <Section id={id} tone="surface">
+    <Section id={id} tone="soft">
       <header className="mb-8 flex flex-col gap-3">
         <Eyebrow>mail --to me</Eyebrow>
         <Heading level={2} text="Get in touch" typewriter />

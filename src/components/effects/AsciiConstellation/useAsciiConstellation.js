@@ -248,23 +248,18 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       const i = mouse.intensity;
       if (i < 0.05) return;
 
-      ctx.globalAlpha = 0.7 * i;
+      ctx.globalAlpha = 0.6 * i;
       ctx.strokeStyle = softInk;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
+      ctx.arc(mouse.x, mouse.y, 10, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.globalAlpha = 0.85 * i;
-      ctx.strokeStyle = softInk;
-      ctx.lineWidth = 1.4;
-      const s = 12;
-      ctx.beginPath();
-      ctx.moveTo(mouse.x - s, mouse.y);
-      ctx.lineTo(mouse.x + s, mouse.y);
-      ctx.moveTo(mouse.x, mouse.y - s);
-      ctx.lineTo(mouse.x, mouse.y + s);
-      ctx.stroke();
+      ctx.globalAlpha = 0.95 * i;
+      ctx.fillStyle = ink;
+      ctx.font = '16px "JetBrains Mono", ui-monospace, Menlo, monospace';
+      ctx.fillText('@', mouse.x, mouse.y);
+      ctx.font = NODE_FONT;
     }
 
     function draw() {

@@ -1,5 +1,6 @@
 const TONES = {
   dark: 'bg-[var(--color-canvas)]',
+  soft: 'bg-[var(--color-surface-soft)]',
   surface: 'bg-[var(--color-surface)]',
 };
 

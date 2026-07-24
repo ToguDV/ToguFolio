@@ -1,7 +1,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-raised);
+  background: var(--color-canvas);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -17,7 +17,7 @@
   position: relative;
   padding: 20px 20px 12px;
   border-bottom: 1px solid var(--color-hairline);
-  background: var(--color-surface);
+  background: var(--color-canvas);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;

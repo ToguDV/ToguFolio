@@ -7,7 +7,7 @@ import styles from './Projects.module.css';
 
 export default function Projects({ id = 'projects' }) {
   return (
-    <Section id={id} tone="surface" wide>
+    <Section id={id} tone="soft" wide>
       <div className={styles.headerWrap}>
         <header className={styles.header}>
           <Eyebrow>ls --projects</Eyebrow>
