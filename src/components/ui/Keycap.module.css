@@ -1,0 +1,31 @@
+.bracketed {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-body-md);
+  line-height: 1;
+  padding: 2px 0;
+  text-decoration: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.primary {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.primary:hover {
+  color: var(--color-ink-soft);
+}
+
+.secondary {
+  color: var(--color-text-mute);
+  font-weight: 400;
+}
+
+.secondary:hover {
+  color: var(--color-ink);
+}

@@ -1,0 +1,65 @@
+import AsciiBlock from '../../effects/AsciiBlock.jsx';
+import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
+import CommandList from '../../ui/CommandList.jsx';
+import Keycap from '../../ui/Keycap.jsx';
+import Tag from '../../ui/Tag.jsx';
+import { PROJECT_ASCII } from '../../../data/ascii.js';
+import { BUNNY_ANGRY_FRAMES } from '../../../data/animals.js';
+import styles from './ProjectCard.module.css';
+
+const STATUS_TONE = {
+  live: styles.statusLive,
+  wip: styles.statusWip,
+  archived: styles.statusArchived,
+};
+
+const STATUS_LABEL = {
+  live: 'live',
+  wip: 'wip',
+  archived: 'archived',
+};
+
+export default function ProjectCard({ project }) {
+  const { title, description, stack, status, url, repo } = project;
+  const statusTone = STATUS_TONE[status] ?? STATUS_TONE.live;
+  const isWip = status === 'wip';
+
+  return (
+    <article className={styles.card}>
+      <div className={styles.preview}>
+        {isWip ? (
+          <AsciiFrameAnimator
+            frames={BUNNY_ANGRY_FRAMES}
+            fps={400}
+            trigger="inView"
+            tone="ink-soft"
+            className={styles.previewAscii}
+          />
+        ) : (
+          <AsciiBlock tone="ink-soft">{PROJECT_ASCII}</AsciiBlock>
+        )}
+        <span className={[styles.status, statusTone].filter(Boolean).join(' ')}>
+          {STATUS_LABEL[status] ?? status}
+        </span>
+      </div>
+
+      <div className={styles.body}>
+        <h3 className={styles.title}>{title}</h3>
+        <p className={styles.description}>{description}</p>
+
+        <ul className={styles.stack} aria-label="tech stack">
+          {stack.map((tech) => (
+            <li key={tech}>
+              <Tag>{tech}</Tag>
+            </li>
+          ))}
+        </ul>
+
+        <CommandList className={styles.links}>
+          {url ? <Keycap href={url} variant="primary" external>tour</Keycap> : null}
+          {repo ? <Keycap href={repo} variant="secondary" external>source</Keycap> : null}
+        </CommandList>
+      </div>
+    </article>
+  );
+}

@@ -1,0 +1,32 @@
+.wrapper {
+  display: inline-block;
+  cursor: cell;
+  outline: none;
+}
+
+.wrapper:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+.frame {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+  display: block;
+}
+
+.tone_ink {
+  color: var(--color-ink);
+}
+
+.tone_inksoft {
+  color: var(--color-ink-soft);
+}
+
+.tone_inkmute {
+  color: var(--color-ink-mute);
+}

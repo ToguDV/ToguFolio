@@ -1,0 +1,14 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.prompt {
+  color: var(--color-ink-mute);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
