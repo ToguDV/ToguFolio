@@ -3,7 +3,6 @@ import styles from './BandDivider.module.css';
 
 const SUBTLE = {
   headAlpha: 0.1,
-  fadeAlpha: 0.08,
   tailLength: 14,
   frameIntervalMs: 55,
   speed: 0.3,
