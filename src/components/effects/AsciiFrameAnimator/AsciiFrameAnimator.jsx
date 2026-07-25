@@ -40,6 +40,11 @@ export default function AsciiFrameAnimator({
           : !playing
   );
 
+  const bubbleText =
+    typeof speechBubble === 'object' && speechBubble !== null
+      ? (playing ? speechBubble.playing : speechBubble.idle)
+      : speechBubble;
+
   const wrapperProps = {
     className: [
       styles.wrapper,
@@ -80,7 +85,7 @@ export default function AsciiFrameAnimator({
           aria-hidden="true"
           className={[styles.bubble, toneClass].join(' ')}
         >
-          {speechBubble}
+          {bubbleText}
         </pre>
       )}
       <pre

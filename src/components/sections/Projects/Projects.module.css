@@ -3,6 +3,13 @@
   max-width: 48rem;
   margin-inline: auto;
   margin-bottom: 48px;
+  padding-right: 88px;
+}
+
+@media (max-width: 640px) {
+  .headerWrap {
+    padding-right: 56px;
+  }
 }
 
 .header {
@@ -24,7 +31,9 @@
 
 @media (max-width: 640px) {
   .stickman {
-    display: none;
+    font-size: 10px;
+    line-height: 1.15;
+    opacity: 0.45;
   }
 }
 

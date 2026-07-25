@@ -30,6 +30,13 @@ export const BUNNY_SPEECH = [
   '             v',
 ].join('\n');
 
+export const BUNNY_ANGRY_SPEECH = [
+  '+-----------------+',
+  '| >:( back off!   |',
+  '+-----------------+',
+  '             v',
+].join('\n');
+
 export const BUNNY_ANGRY_FRAMES = [
   [
     '   (| |) 💢',
@@ -55,5 +62,28 @@ export const CAT_COFFEE_FRAMES = [
     ' ∧ _ ∧   ',
     '(- ω -„) ',
     ' O☕ O )/  ',
+  ].join('\n'),
+];
+
+export const CAT_HERO_FRAMES = [
+  [
+    ' ∧ _ ∧   ',
+    '(• ω •„) ',
+    ' ૮   ა   ',
+  ].join('\n'),
+  [
+    ' ∧ _ ∧   ',
+    '(- ω -„) ',
+    ' ૮   ა   ',
+  ].join('\n'),
+  [
+    ' ∧ _ ∧   ',
+    '(• ω •„) ',
+    ' ૮   ა   ',
+  ].join('\n'),
+  [
+    ' ∧ _ ∧   ',
+    '(• ω -„) ',
+    ' ૮   ა   ',
   ].join('\n'),
 ];

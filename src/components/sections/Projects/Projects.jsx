@@ -4,7 +4,7 @@ import Heading from '../../ui/Heading.jsx';
 import ProjectCard from './ProjectCard.jsx';
 import AsciiBlock from '../../effects/AsciiBlock.jsx';
 import { projects } from '../../../data/projects.js';
-import { STICKMAN_DASH } from '../../../data/stickmans.js';
+import { STICKMAN_CLASH } from '../../../data/stickmans.js';
 import styles from './Projects.module.css';
 
 export default function Projects({ id = 'projects' }) {
@@ -16,7 +16,7 @@ export default function Projects({ id = 'projects' }) {
           <Heading level={2} text="Projects" typewriter />
         </header>
         <AsciiBlock tone="ink-soft" className={styles.stickman}>
-          {STICKMAN_DASH}
+          {STICKMAN_CLASH}
         </AsciiBlock>
       </div>
 

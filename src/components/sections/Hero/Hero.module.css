@@ -8,7 +8,7 @@
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  height: 180px;
+  height: 60px;
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(
@@ -36,7 +36,14 @@
 
 .content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  padding-right: 88px;
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding-right: 56px;
+  }
 }
 
 .eyebrow {
@@ -73,6 +80,28 @@
   color: var(--color-ink-mute);
 }
 
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.cta {
+  font-size: var(--text-body-lg);
+  padding: 6px 0;
+}
+
+.heroCat {
+  flex-shrink: 0;
+  opacity: 0.9;
+  letter-spacing: normal;
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
 .stickman {
   position: absolute;
   top: 0;
@@ -85,7 +114,13 @@
 }
 
 @media (max-width: 640px) {
-  .stickman {
+  .heroCat {
     display: none;
+  }
+
+  .stickman {
+    font-size: 10px;
+    line-height: 1.15;
+    opacity: 0.45;
   }
 }
