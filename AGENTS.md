@@ -28,10 +28,12 @@
 - **All canvas effects short-circuit on `prefers-reduced-motion`** (return early in `useEffect`). Caret and CSS animations are killed via the global rule in `base.css`. The static visual still renders — motion is what's removed, not content.
 - **Two animation systems coexist:** `useEffect`-driven canvas effects (`useMatrixRain`, `useAsciiConstellation`) and a CSS `@keyframes` blinking caret (`Caret.module.css`). Both respect reduced-motion; don't add new motion without a `prefers-reduced-motion` branch.
 - **Mouse / touch listeners on canvas effects are attached to the enclosing `<section>`** (via `findSection(canvas)` in `useAsciiConstellation`), not the canvas itself, so the hit area covers the whole band even when the canvas is `pointer-events: none`. Don't change to `canvas.addEventListener` without re-checking the bounds.
-- **`AsciiFrameAnimator` re-renders the `<pre>` with a `key={current}`** so each frame remounts (cheap, no diffing). Trigger modes: `hover` (focusable), `inView` (uses `useInView`), `always` (loops forever). Frames are passed as already-joined strings.
+- **`AsciiFrameAnimator` re-renders the `<pre>` with a `key={renderFrame}`** so each frame remounts (cheap, no diffing). Trigger modes: `hover` (focusable), `inView` (uses `useInView`), `always` (loops forever), `click` (focusable, latches on, exposes `aria-label` / `aria-pressed`, supports Enter/Space). Optional `idleFrame` shows a static frame when not playing; optional `speechBubble` + `speechBubbleWhen` (`'idle'` default / `'playing'` / `'always'` / `'never'`) renders an ASCII bubble above the frame. Frames are passed as already-joined strings.
 - **`Button` uses inline Tailwind utility classes** (`STYLES` const in the file), not a CSS module. New variants should be added there, not as a module class. It stays polymorphic (`<a>` if `href` else `<button>`) and prepends a `> ` arrow.
 - **`Keycap` is the bracketed `[label]`-style** for inline project links (`tour`, `source`) and contact socials. `primary` is bold lime, `secondary` is muted slate. Replaces the old plain `<a>` text links in `ProjectCard` and `Contact`.
 - **Project data lives in `data/projects.js`** (per the rule "data/*.js is plain JS, no JSX"). The older `sections/Projects/projects.data.js` path in some architecture diagrams is stale — the canonical location is `data/projects.js`.
+- **Decorative stickman frames live in `data/stickmans.js`** — individual `STICKMAN_*` exports (T-pose, dash, walk, jump, strike, etc.) plus a `STICKMANS` array of all of them. Use as raw ASCII in `<AsciiBlock>` (see Hero / Projects). Not used by any animator.
+- **Custom scrollbar is in `base.css`** — lime thumb on dark surface, hard-edged (`border-radius: 0`) with a 1px hairline. Both `::-webkit-scrollbar` and the `scrollbar-color` / `scrollbar-width` Firefox properties are set. The reduced-motion media query does NOT touch it.
 - **`PULSE_FRAMES` in `data/animations.js` is currently unused** — defined and exported, no consumer yet. Safe to consume or delete.
 
 ---
@@ -49,7 +51,7 @@ Ghost design system (see `ghost.design.md`) inverted to a **dark theme** and ref
 - **Matrix rain reappears as a masked band divider** between Projects and About (`<BandDivider>` with `intensity="subtle"`).
 - **Blinking caret** on the active headline, at the end of the terminal panel in `About`, and on every interactive element on focus.
 - **Typewriter reveal** on hero copy and section headings (scroll-triggered via `useInView`, fires **once** per heading — latched, doesn't re-run if the user scrolls back).
-- **Animated ASCII critters** (bear sleeping in About, bunny raging on `wip` project cards, cat drinking coffee in the Footer signoff) via `AsciiFrameAnimator`.
+- **Animated ASCII critters** (bear sleeping in About, clickable angry bunny in Contact, cat drinking coffee in the Footer signoff) via `AsciiFrameAnimator`.
 
 ### Design Tokens (dark theme, derived from `ghost.design.md`)
 
@@ -155,7 +157,8 @@ src/
   data/
     projects.js                           # project list (id, title, ascii, stack, url, repo, status)
     ascii.js                              # PROJECT_ASCII, ABOUT_OUTPUT
-    animals.js                            # ts-animal (MIT) frames: bear/bunny/cat
+    animals.js                            # ts-animal (MIT) frames: bear/bunny/cat + BUNNY_IDLE/SPEECH
+    stickmans.js                          # STICKMAN_* poses (T-pose, dash, walk, jump, …) + STICKMANS array
     animations.js                         # PULSE_FRAMES (currently unused)
   hooks/
     useInView.js                          # IntersectionObserver wrapper, returns [ref, boolean]
@@ -174,10 +177,10 @@ src/
 | # | Section | Tone | Background | Notes |
 |---|---|---|---|---|
 | 1 | Hero | dark | canvas | `<AsciiConstellation>` behind, typewriter h1, eyebrow `$> portfolio --init` |
-| 2 | Projects | surface | surface | 1/2-col grid, cards use `AsciiBlock` (live/archived) or `AsciiFrameAnimator` (`wip` → bunny) |
+| 2 | Projects | surface | surface | 1/2-col grid, every card uses `AsciiBlock`; decorative `STICKMAN_DASH` top-right |
 | — | BandDivider | canvas | canvas | Masked MatrixRain, label `-- section --break` |
 | 3 | About | dark | canvas | Eyebrow `cat about.txt`, terminal panel with bear + blinking caret |
-| 4 | Contact | surface | surface | Mailto `Button`, GitHub/LinkedIn as `Keycap` |
+| 4 | Contact | surface | surface | Mailto + GitHub/LinkedIn as `Keycap` inside `CommandList`; clickable angry bunny top-right |
 | Footer | colophon | canvas | canvas | Build line, deploy date, ts-animal attribution, cat-coffee signoff |
 
 Each band is flush-edged (no gradients between them). `Section` handles the `padding: 64px` (token `--section-padding-y`) per band, and `scroll-mt-[var(--nav-height)]` so anchored sections clear the sticky Nav.
@@ -193,7 +196,7 @@ Each band is flush-edged (no gradients between them). `Section` handles the `pad
   description: 'string',    // 1-2 sentence lede
   url: 'https://...',       // optional live link → renders a primary <Keycap>tour</Keycap>
   repo: 'https://...',      // optional repo link → renders a secondary <Keycap>source</Keycap>
-  status: 'live' | 'wip' | 'archived'   // live/archived → static ASCII, wip → bunny animator
+  status: 'live' | 'wip' | 'archived'   // all cards render the static PROJECT_ASCII block; status only changes the badge tone/label
 }
 ```
 
@@ -201,7 +204,7 @@ Each band is flush-edged (no gradients between them). `Section` handles the `pad
 - Respect `prefers-reduced-motion: reduce`: kill constellation, kill matrix rain, kill frame animator (render first frame statically), kill typewriter (jump to final state), kill caret blink (static caret). Global `scroll-behavior` also goes to `auto`.
 - All interactive elements are real `<a>`/`<button>`. Decorative ASCII wrapped in `aria-hidden="true"`.
 - Color contrast: lime `#d1ff19` on canvas `#0a0a0a` ≈ 15.8:1 (AAA). Slate-200 on canvas ≈ 14:1.
-- Focus rings: 2px solid lime, `outline-offset: 2px` (global in `base.css`). The `AsciiFrameAnimator hover` trigger also exposes a `focus-visible` outline so keyboard users get the same affordance.
+- Focus rings: 2px solid lime, `outline-offset: 2px` (global in `base.css`). The `AsciiFrameAnimator` `hover` and `click` triggers expose a `focus-visible` outline so keyboard users get the same affordance.
 - `AsciiConstellation` is `pointer-events: none` on the canvas layer so it never blocks clicks on the hero content.
 
 ### Out of Scope (for v1)
@@ -239,9 +242,15 @@ History (chronological, condensed from git log):
 17. ✅ **`hooks/useInView.js`** — shared `IntersectionObserver` wrapper, used by `AsciiFrameAnimator` for the `inView` trigger.
 18. ✅ **MatrixRain char set extended** with rare multi-char strings `( ͡° ͜ʖ ͡°)`, `¯\_(ツ)_/¯`, `TOGU ESTUVO AQUI` at 0.5% probability. Multi-char glyphs are measured and "claimed" across multiple cells so neighbouring columns don't overdraw them.
 19. ✅ **Footer signoff** swaps the static `>` for an always-animating `CAT_COFFEE_FRAMES` `AsciiFrameAnimator`.
+20. ✅ **Decorative stickman ASCII in Hero / Projects** — `data/stickmans.js` holds individual `STICKMAN_*` frames + a `STICKMANS` array. Hero uses `STICKMAN_TPOSE` (top-right, `pointer-events: none`, hidden < 640px); Projects uses `STICKMAN_DASH` in the same role. Rendered via `<AsciiBlock tone="ink-soft">`, not the animator.
+21. ✅ **`AsciiFrameAnimator` gained `click` trigger + `idleFrame` + `speechBubble` props** — used by the clickable angry bunny in the Contact section (top-right, idle until clicked, says "dont touch me"). New CSS classes: `trigger_hover` / `trigger_click` (cursors) and `hasBubble` (flex column for bubble above frame).
+22. ✅ **Hero has a bottom fade-to-surface gradient** (`::after` on `.hero`) so the constellation no longer leaks into the Projects band; the canvas itself is also `mask-image`-clipped to fade at 75% height.
+23. ✅ **WIP-project bunny removed from `ProjectCard`** — the bunny now lives only in Contact. All project cards render the static `PROJECT_ASCII` block.
+24. ✅ **Custom lime scrollbar** in `base.css` — 16px wide, hard-edged, lime thumb on dark surface. Both WebKit and Firefox (`scrollbar-color` / `scrollbar-width`) covered. Reduced-motion media query intentionally leaves it alone.
 
 **Likely next ideas (not in scope unless asked):**
 - Wire `PULSE_FRAMES` somewhere (e.g. a `loading` state in Contact, or a stand-alone "extras" section).
 - Delete unused `src/assets/{react,vite,hero}.{svg,png}` and `public/icons.svg` (no consumer).
 - Add an `aria-live="polite"` announcement when the typewriter finishes, for screen readers.
 - Add an `IntersectionObserver` to defer the `AsciiConstellation` mount until the hero is in view (currently mounts immediately on `useEffect`).
+- Use the remaining stickman frames (`STICKMAN_WALK`, `STICKMAN_JUMP`, `STICKMAN_CHEER`, `STICKMANS` array) in more sections.
