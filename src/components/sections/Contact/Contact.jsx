@@ -6,7 +6,7 @@ import Keycap from '../../ui/Keycap.jsx';
 import AsciiBlock from '../../effects/AsciiBlock.jsx';
 import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
 import { BUNNY_IDLE, BUNNY_ANGRY_FRAMES, BUNNY_SPEECH, BUNNY_ANGRY_SPEECH } from '../../../data/animals.js';
-import { STICKMAN_WALK } from '../../../data/stickmans.js';
+import { STICKMAN_CURL_LEFT, STICKMAN_CURL_RIGHT, STICKMAN_WALK } from '../../../data/stickmans.js';
 
 export default function Contact({ id = 'contact' }) {
   return (
@@ -20,7 +20,7 @@ export default function Contact({ id = 'contact' }) {
               aria-hidden="true"
               className="pointer-events-none m-0 text-[12px] leading-[1.15] sm:text-[10px]"
             >
-              {STICKMAN_WALK}
+              {STICKMAN_CURL_RIGHT}
             </AsciiBlock>
           </div>
           <Heading level={2} text="Get in touch" typewriter />

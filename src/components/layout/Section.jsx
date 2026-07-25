@@ -4,10 +4,11 @@ const TONES = {
   surface: 'bg-[var(--color-surface)]',
 };
 
-export default function Section({ id, tone = 'dark', children, className = '', wide = false }) {
+export default function Section({ id, tone = 'dark', children, className = '', wide = false, ...rest }) {
   return (
     <section
       id={id}
+      {...rest}
       className={[
         TONES[tone] ?? TONES.dark,
         'py-[var(--section-padding-y)]',

@@ -248,24 +248,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       }
     }
 
-    function drawCursor() {
-      const i = mouse.intensity;
-      if (i < 0.05) return;
-
-      ctx.globalAlpha = 0.6 * i;
-      ctx.strokeStyle = softInk;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, 10, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.globalAlpha = 0.95 * i;
-      ctx.fillStyle = ink;
-      ctx.font = '16px "JetBrains Mono", ui-monospace, Menlo, monospace';
-      ctx.fillText('@', mouse.x, mouse.y);
-      ctx.font = NODE_FONT;
-    }
-
     function draw() {
       ctx.clearRect(0, 0, width, height);
 
@@ -282,8 +264,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       for (const n of nodes) {
         drawNode(n);
       }
-
-      drawCursor();
 
       ctx.globalAlpha = 1;
     }

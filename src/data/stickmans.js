@@ -36,7 +36,7 @@ export const STICKMAN_TPOSE = [
 
 export const STICKMAN_WALK = [
   ' o/',
-  ' /|',
+  ' /',
   '/ >',
 ].join('\n');
 
