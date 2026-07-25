@@ -2,7 +2,7 @@ import MatrixRain from '../effects/MatrixRain/MatrixRain.jsx';
 import styles from './BandDivider.module.css';
 
 const SUBTLE = {
-  headAlpha: 0.22,
+  headAlpha: 0.5,
   tailLength: 14,
   frameIntervalMs: 55,
   speed: 0.3,
