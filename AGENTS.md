@@ -35,7 +35,7 @@
 - **`Button` uses inline Tailwind utility classes** (`STYLES` const in the file), not a CSS module. New variants should be added there, not as a module class. It stays polymorphic (`<a>` if `href` else `<button>`) and prepends a `> ` arrow.
 - **`Keycap` is the bracketed `[label]`-style** for inline project links (`tour`, `source`) and contact socials. `primary` is bold lime, `secondary` is muted slate. Replaces the old plain `<a>` text links in `ProjectCard` and `Contact`.
 - **Project data lives in `data/projects.js`** (per the rule "data/*.js is plain JS, no JSX"). The older `sections/Projects/projects.data.js` path in some architecture diagrams is stale — the canonical location is `data/projects.js`.
-- **Decorative stickman frames live in `data/stickmans.js`** — individual `STICKMAN_*` exports (T-pose, dash, walk, jump, strike, etc.) plus a `STICKMANS` array of all of them. Use as raw ASCII in `<AsciiBlock>` (see Hero / Projects). Not used by any animator.
+- **Decorative stickman frames live in `data/stickmans.js`** — individual `STICKMAN_*` exports (T-pose, dash, walk, jump, strike, etc.) plus a `STICKMANS` array of all of them. Use as raw ASCII in `<AsciiBlock>` (see Hero / Projects / About / Contact). Not used by any animator.
 - **Custom scrollbar is in `base.css`** — lime thumb on dark surface, hard-edged (`border-radius: 0`) with a 1px hairline. Both `::-webkit-scrollbar` and the `scrollbar-color` / `scrollbar-width` Firefox properties are set. The reduced-motion media query does NOT touch it.
 - **`PULSE_FRAMES` in `data/animations.js` is currently unused** — defined and exported, no consumer yet. Safe to consume or delete.
 
@@ -180,7 +180,7 @@ src/
 | # | Section | Tone | Background | Notes |
 |---|---|---|---|---|
 | 1 | Hero | dark | canvas | `<AsciiConstellation>` behind, typewriter h1, eyebrow `$> portfolio --init` |
-| 2 | Projects | surface | surface | 1/2-col grid, every card uses `AsciiBlock`; decorative `STICKMAN_DASH` top-right |
+| 2 | Projects | surface | surface | 1/2-col grid, every card uses `AsciiBlock`; decorative `STICKMAN_CLASH` next to the eyebrow |
 | — | BandDivider | canvas | canvas | Masked MatrixRain, label `-- section --break` |
 | 3 | About | dark | canvas | Eyebrow `cat about.txt`, terminal panel with bear + blinking caret |
 | 4 | Contact | surface | surface | Mailto + GitHub/LinkedIn as `Keycap` inside `CommandList`; clickable angry bunny top-right |
@@ -245,15 +245,16 @@ History (chronological, condensed from git log):
 17. ✅ **`hooks/useInView.js`** — shared `IntersectionObserver` wrapper, used by `AsciiFrameAnimator` for the `inView` trigger.
 18. ✅ **MatrixRain char set extended** with rare multi-char strings `( ͡° ͜ʖ ͡°)`, `¯\_(ツ)_/¯`, `TOGU ESTUVO AQUI` at 0.5% probability. Multi-char glyphs are measured and "claimed" across multiple cells so neighbouring columns don't overdraw them.
 19. ✅ **Footer signoff** swaps the static `>` for an always-animating `CAT_COFFEE_FRAMES` `AsciiFrameAnimator`.
-20. ✅ **Decorative stickman ASCII in Hero / Projects** — `data/stickmans.js` holds individual `STICKMAN_*` frames + a `STICKMANS` array. Hero uses `STICKMAN_TPOSE` (top-right, `pointer-events: none`, hidden < 640px); Projects uses `STICKMAN_DASH` in the same role. Rendered via `<AsciiBlock tone="ink-soft">`, not the animator.
+20. ✅ **Decorative stickman ASCII in Hero / Projects** — `data/stickmans.js` holds individual `STICKMAN_*` frames + a `STICKMANS` array. Hero uses `STICKMAN_TPOSE` next to the eyebrow (`pointer-events: none`, shrinks to 10px on mobile); Projects uses `STICKMAN_CLASH` in the same role. Rendered via `<AsciiBlock tone="ink-soft">`, not the animator.
 21. ✅ **`AsciiFrameAnimator` gained `click` trigger + `idleFrame` + `speechBubble` props** — used by the clickable angry bunny in the Contact section (top-right, idle until clicked, says "dont touch me"). New CSS classes: `trigger_hover` / `trigger_click` (cursors) and `hasBubble` (flex column for bubble above frame).
 22. ✅ **Hero has a bottom fade-to-surface gradient** (`::after` on `.hero`) so the constellation no longer leaks into the Projects band; the canvas itself is also `mask-image`-clipped to fade at 75% height.
 23. ✅ **WIP-project bunny removed from `ProjectCard`** — the bunny now lives only in Contact. All project cards render the static `PROJECT_ASCII` block.
 24. ✅ **Custom lime scrollbar** in `base.css` — 16px wide, hard-edged, lime thumb on dark surface. Both WebKit and Firefox (`scrollbar-color` / `scrollbar-width`) covered. Reduced-motion media query intentionally leaves it alone.
+25. ✅ **Decorative stickmans extended to About / Contact** — About uses `STICKMAN_LEAN` (relaxed, fits the reflective copy) and Contact uses `STICKMAN_WALK` (reaching out) next to their respective eyebrows, following the same `pointer-events: none` + 12px→10px-on-mobile pattern. About gets a new `.eyebrowRow` flex container in its CSS module; Contact (which uses Tailwind utilities) gets an inline `flex items-center gap-4` row.
 
 **Likely next ideas (not in scope unless asked):**
 - Wire `PULSE_FRAMES` somewhere (e.g. a `loading` state in Contact, or a stand-alone "extras" section).
 - Delete unused `src/assets/{react,vite,hero}.{svg,png}` and `public/icons.svg` (no consumer).
 - Add an `aria-live="polite"` announcement when the typewriter finishes, for screen readers.
 - Add an `IntersectionObserver` to defer the `AsciiConstellation` mount until the hero is in view (currently mounts immediately on `useEffect`).
-- Use the remaining stickman frames (`STICKMAN_WALK`, `STICKMAN_JUMP`, `STICKMAN_CHEER`, `STICKMANS` array) in more sections.
+- Use the remaining stickman frames (`STICKMAN_CURL_LEFT`, `STICKMAN_CURL_RIGHT`, `STICKMAN_CHEER`, `STICKMAN_KICK`, `STICKMAN_DASH`, `STICKMAN_JUMP`, `STICKMAN_STRIKE`) in more sections.

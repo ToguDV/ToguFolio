@@ -3,15 +3,26 @@ import Eyebrow from '../../ui/Eyebrow.jsx';
 import Heading from '../../ui/Heading.jsx';
 import CommandList from '../../ui/CommandList.jsx';
 import Keycap from '../../ui/Keycap.jsx';
+import AsciiBlock from '../../effects/AsciiBlock.jsx';
 import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
 import { BUNNY_IDLE, BUNNY_ANGRY_FRAMES, BUNNY_SPEECH, BUNNY_ANGRY_SPEECH } from '../../../data/animals.js';
+import { STICKMAN_WALK } from '../../../data/stickmans.js';
 
 export default function Contact({ id = 'contact' }) {
   return (
     <Section id={id} tone="soft">
       <div className="relative">
         <header className="mb-8 flex flex-col gap-3 pr-16 sm:pr-40">
-          <Eyebrow>mail --to me</Eyebrow>
+          <div className="flex items-center gap-4">
+            <Eyebrow>mail --to me</Eyebrow>
+            <AsciiBlock
+              tone="ink-soft"
+              aria-hidden="true"
+              className="pointer-events-none m-0 text-[12px] leading-[1.15] sm:text-[10px]"
+            >
+              {STICKMAN_WALK}
+            </AsciiBlock>
+          </div>
           <Heading level={2} text="Get in touch" typewriter />
           <p className="m-0 text-[length:var(--text-body-lg)] leading-[1.5] text-[color:var(--color-text)]">
             The fastest way to reach me is email. I read everything within a
