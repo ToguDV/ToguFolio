@@ -1,15 +1,7 @@
 .headerWrap {
-  position: relative;
   max-width: 48rem;
   margin-inline: auto;
   margin-bottom: 48px;
-  padding-right: 88px;
-}
-
-@media (max-width: 640px) {
-  .headerWrap {
-    padding-right: 56px;
-  }
 }
 
 .header {
@@ -18,22 +10,23 @@
   gap: 12px;
 }
 
+.eyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .stickman {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 2;
-  opacity: 0.55;
   font-size: 12px;
   line-height: 1.15;
   pointer-events: none;
+  margin: 0;
 }
 
 @media (max-width: 640px) {
   .stickman {
     font-size: 10px;
     line-height: 1.15;
-    opacity: 0.45;
   }
 }
 

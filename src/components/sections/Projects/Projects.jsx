@@ -12,12 +12,14 @@ export default function Projects({ id = 'projects' }) {
     <Section id={id} tone="soft" wide>
       <div className={styles.headerWrap}>
         <header className={styles.header}>
-          <Eyebrow>ls --projects</Eyebrow>
+          <div className={styles.eyebrowRow}>
+            <Eyebrow>ls --projects</Eyebrow>
+            <AsciiBlock tone="ink-soft" className={styles.stickman} aria-hidden="true">
+              {STICKMAN_CLASH}
+            </AsciiBlock>
+          </div>
           <Heading level={2} text="Projects" typewriter />
         </header>
-        <AsciiBlock tone="ink-soft" className={styles.stickman}>
-          {STICKMAN_CLASH}
-        </AsciiBlock>
       </div>
 
       <div className={styles.grid}>

@@ -14,9 +14,14 @@ export default function Hero({ id = 'hero' }) {
     <Section id={id} tone="dark" className={styles.hero}>
       <AsciiConstellation className={styles.constellation} />
       <div className={styles.content}>
-        <p className={styles.eyebrow}>
-          <span className={styles.prompt}>&gt;</span> portfolio --init
-        </p>
+        <div className={styles.eyebrowRow}>
+          <p className={styles.eyebrow}>
+            <span className={styles.prompt}>&gt;</span> portfolio --init
+          </p>
+          <AsciiBlock tone="ink-soft" className={styles.stickman} aria-hidden="true">
+            {STICKMAN_TPOSE}
+          </AsciiBlock>
+        </div>
 
         <h1 className={styles.headline}>
           <Typewriter text="Hello, world." speed={70} />
@@ -41,10 +46,6 @@ export default function Hero({ id = 'hero' }) {
             className={styles.heroCat}
           />
         </div>
-
-        <AsciiBlock tone="ink-soft" className={styles.stickman}>
-          {STICKMAN_TPOSE}
-        </AsciiBlock>
       </div>
     </Section>
   );
