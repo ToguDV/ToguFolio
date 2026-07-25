@@ -16,6 +16,20 @@ export const BEAR_SLEEPING_FRAMES = [
   ].join('\n'),
 ];
 
+export const BUNNY_IDLE = [
+  '   (| |)   ',
+  '  ( •̀ᴥ•́ )  ',
+  '  ૮     ა  ',
+  '   _   _   ',
+].join('\n');
+
+export const BUNNY_SPEECH = [
+  '+-----------------+',
+  '| dont touch me   |',
+  '+-----------------+',
+  '             v',
+].join('\n');
+
 export const BUNNY_ANGRY_FRAMES = [
   [
     '   (| |) 💢',

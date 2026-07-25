@@ -3,8 +3,35 @@
   overflow: hidden;
 }
 
+.hero::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 180px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-surface-soft)
+  );
+}
+
 .constellation {
   z-index: 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 30%,
+    transparent 75%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 30%,
+    transparent 75%
+  );
 }
 
 .content {
@@ -38,9 +65,27 @@
   margin: 32px 0 0;
   font-size: var(--text-body-lg);
   line-height: 1.5;
-  color: var(--color-text-mute);
+  color: var(--color-text);
+  text-shadow: 0 1px 12px var(--color-canvas), 0 0 2px var(--color-canvas);
 }
 
 .arrow {
   color: var(--color-ink-mute);
+}
+
+.stickman {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  opacity: 0.55;
+  font-size: 12px;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .stickman {
+    display: none;
+  }
 }

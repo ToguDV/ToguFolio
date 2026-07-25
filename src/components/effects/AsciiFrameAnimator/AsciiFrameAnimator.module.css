@@ -4,6 +4,21 @@
   outline: none;
 }
 
+.trigger_hover {
+  cursor: cell;
+}
+
+.trigger_click {
+  cursor: pointer;
+  user-select: none;
+}
+
+.hasBubble {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .wrapper:focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 4px;
@@ -16,6 +31,15 @@
   margin: 0;
   white-space: pre;
   overflow-x: auto;
+  display: block;
+}
+
+.bubble {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.2;
+  margin: 0 0 4px 0;
+  white-space: pre;
   display: block;
 }
 

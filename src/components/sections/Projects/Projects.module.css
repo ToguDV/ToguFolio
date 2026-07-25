@@ -1,4 +1,5 @@
 .headerWrap {
+  position: relative;
   max-width: 48rem;
   margin-inline: auto;
   margin-bottom: 48px;
@@ -8,6 +9,23 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.stickman {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  opacity: 0.55;
+  font-size: 12px;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .stickman {
+    display: none;
+  }
 }
 
 .grid {
