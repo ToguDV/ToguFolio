@@ -27,6 +27,16 @@ function readVar(name, fallback) {
   return v || fallback;
 }
 
+const DEFAULT_CANVAS_RGB = [10, 10, 10];
+
+function parseHexColor(value) {
+  if (typeof value !== 'string') return DEFAULT_CANVAS_RGB;
+  const m = value.match(/^#([0-9a-f]{6})$/i);
+  if (!m) return DEFAULT_CANVAS_RGB;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+}
+
 function spawnColumn(tailLength, speedBase) {
   return {
     head: -Math.floor(Math.random() * 20),
@@ -61,6 +71,7 @@ export default function useMatrixRain(canvasRef, options = {}) {
     const lime = readVar('--color-ink', '#d1ff19');
     const softLime = readVar('--color-ink-soft', '#a3e635');
     const canvasColor = readVar('--color-canvas', '#0a0a0a');
+    const canvasRgb = parseHexColor(canvasColor);
     const dpr = window.devicePixelRatio || 1;
 
     let columns = [];
@@ -105,10 +116,8 @@ export default function useMatrixRain(canvasRef, options = {}) {
     const rows = Math.max(1, Math.floor(cssHeight / CELL_HEIGHT));
     const numCols = columns.length;
 
-    ctx.globalAlpha = fadeAlpha;
-    ctx.fillStyle = canvasColor;
+    ctx.fillStyle = `rgba(${canvasRgb[0]}, ${canvasRgb[1]}, ${canvasRgb[2]}, ${fadeAlpha})`;
     ctx.fillRect(0, 0, cssWidth, cssHeight);
-    ctx.globalAlpha = 1;
 
     const claimed = new Set();
     for (let i = 0; i < numCols; i++) {
