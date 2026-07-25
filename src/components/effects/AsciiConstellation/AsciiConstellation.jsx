@@ -7,7 +7,9 @@ export default function AsciiConstellation({ className = '' }) {
   useAsciiConstellation(canvasRef);
 
   return (
-    <div className={[styles.layer, className].filter(Boolean).join(' ')}>
+    <div
+      className={[styles.layer, className].filter(Boolean).join(' ')}
+    >
       <canvas
         ref={canvasRef}
         className={styles.canvas}

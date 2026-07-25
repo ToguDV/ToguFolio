@@ -5,6 +5,26 @@
   margin-bottom: 32px;
 }
 
+.eyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stickman {
+  font-size: 12px;
+  line-height: 1.15;
+  pointer-events: none;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .stickman {
+    font-size: 10px;
+    line-height: 1.15;
+  }
+}
+
 .terminal {
   margin-top: 8px;
 }

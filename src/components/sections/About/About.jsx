@@ -2,13 +2,20 @@ import Section from '../../layout/Section.jsx';
 import Eyebrow from '../../ui/Eyebrow.jsx';
 import Heading from '../../ui/Heading.jsx';
 import AboutTerminal from './AboutTerminal.jsx';
+import AsciiBlock from '../../effects/AsciiBlock.jsx';
+import { STICKMAN_LEAN } from '../../../data/stickmans.js';
 import styles from './About.module.css';
 
 export default function About({ id = 'about' }) {
   return (
     <Section id={id} tone="dark">
       <header className={styles.body}>
-        <Eyebrow>cat about.txt</Eyebrow>
+        <div className={styles.eyebrowRow}>
+          <Eyebrow>cat about.txt</Eyebrow>
+          <AsciiBlock tone="ink-soft" className={styles.stickman} aria-hidden="true">
+            {STICKMAN_LEAN}
+          </AsciiBlock>
+        </div>
         <Heading level={2} text="About" typewriter />
         <p>
           I build web interfaces that feel calm, fast, and predictable. I care

@@ -102,8 +102,12 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
+      const newWidth = rect.width;
+      const newHeight = rect.height;
+      const widthChanged = newWidth !== width;
+
+      width = newWidth;
+      height = newHeight;
       canvas.width = Math.max(1, Math.floor(rect.width * dpr));
       canvas.height = Math.max(1, Math.floor(rect.height * dpr));
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -112,7 +116,7 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
 
-      if (nodes.length === 0) {
+      if (nodes.length === 0 || widthChanged) {
         nodes = makeNodes(nodeCount, width, height);
       } else {
         for (const n of nodes) {
@@ -244,29 +248,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       }
     }
 
-    function drawCursor() {
-      const i = mouse.intensity;
-      if (i < 0.05) return;
-
-      ctx.globalAlpha = 0.7 * i;
-      ctx.strokeStyle = softInk;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.globalAlpha = 0.85 * i;
-      ctx.strokeStyle = softInk;
-      ctx.lineWidth = 1.4;
-      const s = 12;
-      ctx.beginPath();
-      ctx.moveTo(mouse.x - s, mouse.y);
-      ctx.lineTo(mouse.x + s, mouse.y);
-      ctx.moveTo(mouse.x, mouse.y - s);
-      ctx.lineTo(mouse.x, mouse.y + s);
-      ctx.stroke();
-    }
-
     function draw() {
       ctx.clearRect(0, 0, width, height);
 
@@ -283,8 +264,6 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       for (const n of nodes) {
         drawNode(n);
       }
-
-      drawCursor();
 
       ctx.globalAlpha = 1;
     }
