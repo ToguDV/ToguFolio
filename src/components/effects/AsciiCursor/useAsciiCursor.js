@@ -22,11 +22,6 @@ export default function useAsciiCursor() {
   const [mode, setMode] = useState('default');
   const [pressed, setPressed] = useState(false);
   const [visible, setVisible] = useState(false);
-  const modeRef = useRef('default');
-
-  useEffect(() => {
-    modeRef.current = mode;
-  }, [mode]);
 
   useEffect(() => {
     const pointerMql = mql(POINTER_QUERY);
@@ -57,53 +52,78 @@ export default function useAsciiCursor() {
   useEffect(() => {
     if (!active) return undefined;
 
-    const setModeIfChanged = (next) => {
-      if (modeRef.current !== next) {
-        modeRef.current = next;
-        setMode(next);
-      }
-    };
+    let rafId = 0;
+    let pending = false;
+    let lastX = -100;
+    let lastY = -100;
+    let lastMode = 'default';
+    let lastVisible = false;
+    let inDocument = true;
 
-    const onMove = (event) => {
-      const x = event.clientX;
-      const y = event.clientY;
-      if (ref.current) {
-        ref.current.style.transform =
-          'translate3d(' +
-          x +
-          'px,' +
-          y +
-          'px,0) translate(-50%,-50%)';
+    const flush = () => {
+      pending = false;
+      const node = ref.current;
+      if (node) {
+        node.style.transform = `translate3d(${lastX}px, ${lastY}px, 0)`;
       }
       const stack =
         typeof document.elementsFromPoint === 'function'
-          ? document.elementsFromPoint(x, y)
+          ? document.elementsFromPoint(lastX, lastY)
           : [];
       const ignored = stack.some(
-        (node) => node && node.closest && node.closest(IGNORE_SELECTOR)
+        (n) => n && n.closest && n.closest(IGNORE_SELECTOR)
       );
-      if (ignored) {
-        setVisible(false);
-        return;
-      }
+      const nextVisible = inDocument && !ignored;
       const el = stack[0] || null;
-      const target = el && el.closest ? el.closest(INTERACTIVE_SELECTOR) : null;
-      let next = 'default';
-      if (target) {
-        if (target.matches(TEXT_INPUT_SELECTOR)) next = 'text';
-        else next = 'interactive';
+      const target =
+        el && el.closest ? el.closest(INTERACTIVE_SELECTOR) : null;
+      let nextMode = 'default';
+      if (target && !ignored) {
+        if (target.matches(TEXT_INPUT_SELECTOR)) nextMode = 'text';
+        else nextMode = 'interactive';
       }
-      setModeIfChanged(next);
-      setVisible(true);
+      if (nextMode !== lastMode) {
+        lastMode = nextMode;
+        setMode(nextMode);
+      }
+      if (nextVisible !== lastVisible) {
+        lastVisible = nextVisible;
+        setVisible(nextVisible);
+      }
+    };
+
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      rafId = requestAnimationFrame(flush);
+    };
+
+    const onMove = (event) => {
+      lastX = event.clientX;
+      lastY = event.clientY;
+      const node = ref.current;
+      if (node) {
+        node.style.transform = `translate3d(${lastX}px, ${lastY}px, 0)`;
+      }
+      schedule();
     };
 
     const onDown = () => setPressed(true);
     const onUp = () => setPressed(false);
 
     const onLeaveDoc = (event) => {
-      if (event.relatedTarget == null) setVisible(false);
+      if (event.relatedTarget == null) {
+        inDocument = false;
+        if (lastVisible) {
+          lastVisible = false;
+          setVisible(false);
+        }
+      }
     };
-    const onEnterDoc = () => setVisible(true);
+    const onEnterDoc = () => {
+      inDocument = true;
+      schedule();
+    };
 
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('pointerdown', onDown, { passive: true });
@@ -112,6 +132,7 @@ export default function useAsciiCursor() {
     document.addEventListener('mouseenter', onEnterDoc);
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerup', onUp);

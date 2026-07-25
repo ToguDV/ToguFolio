@@ -5,7 +5,7 @@
   pointer-events: none;
   z-index: 9999;
   will-change: transform;
-  transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+  transform: translate3d(-100px, -100px, 0);
 }
 
 .glyph {
@@ -18,10 +18,7 @@
   user-select: none;
   -webkit-user-select: none;
   transform: translate(-50%, -50%);
-  transition:
-    transform 120ms ease-out,
-    color 120ms ease-out,
-    opacity 120ms ease-out;
+  transition: color 120ms ease-out, opacity 120ms ease-out;
 }
 
 .default {
@@ -41,6 +38,7 @@
 }
 
 .pressed {
+  transition: none;
   transform: translate(-50%, -50%) scale(1.25);
 }
 
