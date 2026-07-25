@@ -102,8 +102,12 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
+      const newWidth = rect.width;
+      const newHeight = rect.height;
+      const widthChanged = newWidth !== width;
+
+      width = newWidth;
+      height = newHeight;
       canvas.width = Math.max(1, Math.floor(rect.width * dpr));
       canvas.height = Math.max(1, Math.floor(rect.height * dpr));
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -112,7 +116,7 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
 
-      if (nodes.length === 0) {
+      if (nodes.length === 0 || widthChanged) {
         nodes = makeNodes(nodeCount, width, height);
       } else {
         for (const n of nodes) {
