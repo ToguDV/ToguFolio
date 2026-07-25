@@ -91,13 +91,3 @@ button:focus-visible {
     scroll-behavior: auto !important;
   }
 }
-
-html[data-ascii-cursor],
-html[data-ascii-cursor] * {
-  cursor: none !important;
-}
-
-html[data-ascii-cursor] [data-ascii-cursor-ignore],
-html[data-ascii-cursor] [data-ascii-cursor-ignore] * {
-  cursor: auto !important;
-}

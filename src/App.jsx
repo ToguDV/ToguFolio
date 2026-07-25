@@ -6,13 +6,11 @@ import Hero from './components/sections/Hero/Hero.jsx';
 import Projects from './components/sections/Projects/Projects.jsx';
 import About from './components/sections/About/About.jsx';
 import Contact from './components/sections/Contact/Contact.jsx';
-import AsciiCursor from './components/effects/AsciiCursor/AsciiCursor.jsx';
 import './App.css';
 
 function App() {
   return (
     <Shell>
-      <AsciiCursor />
       <Nav />
       <main>
         <Hero />

@@ -9,7 +9,6 @@ export default function AsciiConstellation({ className = '' }) {
   return (
     <div
       className={[styles.layer, className].filter(Boolean).join(' ')}
-      data-ascii-cursor-ignore=""
     >
       <canvas
         ref={canvasRef}
