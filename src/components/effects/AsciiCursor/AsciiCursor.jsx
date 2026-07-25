@@ -2,7 +2,7 @@ import useAsciiCursor from './useAsciiCursor';
 import styles from './AsciiCursor.module.css';
 
 const GLYPHS = {
-  default: '@',
+  default: '+',
   interactive: '◆',
   text: '┃',
 };
