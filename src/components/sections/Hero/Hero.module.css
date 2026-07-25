@@ -110,8 +110,17 @@
 }
 
 @media (max-width: 640px) {
+  .bottom {
+    flex-wrap: wrap;
+  }
+
+  .cta {
+    font-size: var(--text-body-md);
+  }
+
   .heroCat {
-    display: none;
+    font-size: 10px;
+    line-height: 1.15;
   }
 
   .stickman {

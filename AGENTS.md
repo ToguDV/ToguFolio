@@ -14,6 +14,9 @@
 - `npm run preview` — serve the built `dist/`.
 - `npm install` — only setup step; lockfile is `package-lock.json` (use `npm`, not pnpm/yarn).
 
+## Commits
+- Keep commit messages **short and direct** (one line, imperative mood, no body unless asked). Examples: `fix: show hero cat on mobile`, `chore: bump deps`. No emojis, no trailers.
+
 ## Layout
 - Entry HTML: `index.html` (root, references `/src/main.jsx`).
 - React entry: `src/main.jsx` mounts `<App />` into `#root` with `StrictMode`.
