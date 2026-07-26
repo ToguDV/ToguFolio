@@ -38,6 +38,7 @@
   color: var(--color-ink-soft);
   white-space: pre-wrap;
   word-break: break-word;
+  cursor: text;
 }
 
 .bear {
@@ -45,4 +46,38 @@
   margin-top: 4px;
   color: var(--color-ink-mute);
   font-size: var(--text-caption);
+}
+
+.line {
+  color: var(--color-ink-soft);
+}
+
+.response {
+  color: var(--color-ink-mute);
+}
+
+.form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.input {
+  display: inline-block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0 0.35ch;
+  font: inherit;
+  color: var(--color-ink-soft);
+  caret-color: transparent;
+  outline: none;
+  min-width: 1ch;
+  max-width: 100%;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-mauve);
+  outline-offset: 2px;
+  border-radius: 1px;
 }

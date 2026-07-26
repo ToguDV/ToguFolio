@@ -16,6 +16,21 @@ export const BEAR_SLEEPING_FRAMES = [
   ].join('\n'),
 ];
 
+export const BEAR_AWAKE_FRAMES = [
+  [
+    ' ⌒__⌒     ',
+    '(  -_-)   ',
+    '૮   ❍ ა   ',
+    'ヽ＿_つ_つ ',
+  ].join('\n'),
+  [
+    ' ⌒__⌒     ',
+    '(  -_-)?  ',
+    '૮   ❍ ა   ',
+    'ヽ＿_つ_つ ',
+  ].join('\n'),
+];
+
 export const BUNNY_IDLE = [
   '   (| |)   ',
   '  ( •̀ᴥ•́ )  ',
