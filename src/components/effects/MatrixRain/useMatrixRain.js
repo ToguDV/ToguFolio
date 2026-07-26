@@ -57,8 +57,8 @@ export default function useMatrixRain(canvasRef, options = {}) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const lime = readVar('--color-ink', '#d1ff19');
-    const canvasColor = readVar('--color-canvas', '#0a0a0a');
+    const ink = readVar('--color-ink', '#f5c2e7');
+    const canvasColor = readVar('--color-canvas', '#1e1e2e');
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -142,7 +142,7 @@ export default function useMatrixRain(canvasRef, options = {}) {
       ctx.fillStyle = canvasColor;
       ctx.fillRect(0, 0, cssWidth, cssHeight);
 
-      ctx.fillStyle = lime;
+      ctx.fillStyle = ink;
       for (let r = 0; r < rows; r++) {
         const row = grid[r];
         const y = r * CELL_HEIGHT;

@@ -1,22 +1,22 @@
 :root {
-  --color-canvas: #0a0a0a;
-  --color-surface-soft: #0d0d0d;
-  --color-surface: #111111;
-  --color-surface-raised: #1a1a1a;
-  --color-hairline: #1f2937;
-  --color-hairline-soft: #374151;
+  --color-canvas: #1e1e2e;
+  --color-surface-soft: #181825;
+  --color-surface: #1e1e2e;
+  --color-surface-raised: #313244;
+  --color-hairline: #45475a;
+  --color-hairline-soft: #585b70;
 
-  --color-ink: #d1ff19;
-  --color-ink-soft: #a3e635;
-  --color-ink-mute: #84cc16;
+  --color-ink: #f5c2e7;
+  --color-ink-soft: #f2cdcd;
+  --color-ink-mute: #cba6f7;
 
-  --color-text: #e5e7eb;
-  --color-text-mute: #9ca3af;
+  --color-text: #cdd6f4;
+  --color-text-mute: #a6adc8;
 
-  --color-cta-bg: #d1ff19;
-  --color-cta-text: #0a0a0a;
+  --color-cta-bg: #cba6f7;
+  --color-cta-text: #1e1e2e;
 
-  --color-accent: #f87171;
+  --color-accent: #89b4fa;
 
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 

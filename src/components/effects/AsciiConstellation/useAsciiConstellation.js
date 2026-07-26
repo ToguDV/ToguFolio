@@ -85,8 +85,8 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const ink = readVar('--color-ink', '#d1ff19');
-    const softInk = readVar('--color-ink-soft', '#a3e635');
+    const ink = readVar('--color-ink', '#f5c2e7');
+    const softInk = readVar('--color-ink-soft', '#f2cdcd');
     const dpr = window.devicePixelRatio || 1;
 
     const reduced = prefersReducedMotion();
