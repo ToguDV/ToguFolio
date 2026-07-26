@@ -17,7 +17,7 @@ function App() {
         <Projects />
         <BandDivider label="-- section --break" />
         <About />
-        <BandDivider label="-- section --break" />
+        <BandDivider label="-- section --break" tone="dark" />
         <Contact />
       </main>
       <Footer />
