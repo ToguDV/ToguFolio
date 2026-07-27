@@ -7,6 +7,15 @@ import AsciiBlock from '../../effects/AsciiBlock.jsx';
 import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
 import { BUNNY_IDLE, BUNNY_ANGRY_FRAMES, BUNNY_SPEECH, BUNNY_ANGRY_SPEECH } from '../../../data/animals.js';
 import { STICKMAN_CURL_LEFT, STICKMAN_CURL_RIGHT, STICKMAN_WALK } from '../../../data/stickmans.js';
+import meowSound from '../../../assets/sounds/meowing_cat.mp3';
+
+const meowAudio = new Audio(meowSound);
+meowAudio.preload = 'auto';
+
+function playMeow() {
+  meowAudio.currentTime = 0;
+  meowAudio.play().catch(() => {});
+}
 
 export default function Contact({ id = 'contact' }) {
   return (
@@ -55,6 +64,7 @@ export default function Contact({ id = 'contact' }) {
           tone="ink-soft"
           ariaHidden={false}
           ariaLabel="Click to make the bunny angry"
+          onClick={playMeow}
           speechBubble={{ idle: BUNNY_SPEECH, playing: BUNNY_ANGRY_SPEECH }}
           speechBubbleWhen="always"
           className="absolute top-0 right-0 z-10 hidden opacity-90 text-[12px] leading-[1.15] sm:block"

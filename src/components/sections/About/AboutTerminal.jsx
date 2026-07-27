@@ -3,6 +3,7 @@ import Caret from '../../effects/Caret.jsx';
 import AsciiFrameAnimator from '../../effects/AsciiFrameAnimator/AsciiFrameAnimator.jsx';
 import { ABOUT_OUTPUT_PREFIX, ABOUT_RESPONSES } from '../../../data/ascii.js';
 import { BEAR_SLEEPING_FRAMES, BEAR_AWAKE_FRAMES } from '../../../data/animals.js';
+import errorSound from '../../../assets/sounds/error-sound.wav';
 import styles from './AboutTerminal.module.css';
 
 const EXCHANGE_MS = 7000;
@@ -13,10 +14,15 @@ export default function AboutTerminal() {
   const [response, setResponse] = useState(null);
   const inputRef = useRef(null);
   const exchangeTimerRef = useRef(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
+    const audio = new Audio(errorSound);
+    audio.preload = 'auto';
+    audioRef.current = audio;
     return () => {
       if (exchangeTimerRef.current) clearTimeout(exchangeTimerRef.current);
+      audioRef.current = null;
     };
   }, []);
 
@@ -28,6 +34,10 @@ export default function AboutTerminal() {
     setSubmitted(value);
     setResponse(next);
     setInput('');
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
     if (exchangeTimerRef.current) clearTimeout(exchangeTimerRef.current);
     exchangeTimerRef.current = setTimeout(() => {
       setSubmitted(null);

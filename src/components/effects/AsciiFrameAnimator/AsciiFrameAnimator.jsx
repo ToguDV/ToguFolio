@@ -14,6 +14,7 @@ export default function AsciiFrameAnimator({
   ariaLabel = 'Toggle animation',
   speechBubble = '',
   speechBubbleWhen = 'idle',
+  onClick,
 }) {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
@@ -69,11 +70,15 @@ export default function AsciiFrameAnimator({
     wrapperProps.tabIndex = 0;
     wrapperProps['aria-label'] = ariaLabel;
     wrapperProps['aria-pressed'] = clicked;
-    wrapperProps.onClick = () => setClicked(true);
+    wrapperProps.onClick = (e) => {
+      setClicked(true);
+      onClick?.(e);
+    };
     wrapperProps.onKeyDown = (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         setClicked(true);
+        onClick?.(e);
       }
     };
   }
