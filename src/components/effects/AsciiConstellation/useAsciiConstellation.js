@@ -8,7 +8,7 @@ function prefersReducedMotion() {
 }
 
 const DEFAULTS = {
-  nodeCount: 38,
+  nodeCount: 49,
   linkDistance: 150,
   mouseRadius: 200,
   mouseAttract: 0.45,
@@ -31,10 +31,10 @@ const TWINKLE_DURATION_MIN = 180;
 const TWINKLE_DURATION_MAX = 700;
 const TWINKLE_BURST_MIN = 1;
 const TWINKLE_BURST_MAX = 3;
-const STAR_DELAY_FIRST_MIN = 2600;
-const STAR_DELAY_FIRST_MAX = 4800;
-const STAR_INTERVAL_MIN = 7000;
-const STAR_INTERVAL_MAX = 14000;
+const STAR_DELAY_FIRST_MIN = 2500;
+const STAR_DELAY_FIRST_MAX = 4500;
+const STAR_INTERVAL_MIN = 6000;
+const STAR_INTERVAL_MAX = 12000;
 const STAR_SPEED_MIN = 560;
 const STAR_SPEED_MAX = 820;
 const STAR_ANGLE_MIN = 0.3;
@@ -45,6 +45,11 @@ const STAR_WAKE = 2.4;
 const STAR_TWINKLE_MS = 520;
 const STAR_TRAIL_MS = 260;
 const STAR_TRAIL_GLYPHS = ['=', '-', '-', '.', '.', ',', "'", ' '];
+const REPEL_RADIUS = 72;
+const REPEL_STRENGTH = 0.42;
+const NODE_COUNT_DESKTOP_WIDTH = 1024;
+const NODE_COUNT_MOBILE_WIDTH = 480;
+const NODE_COUNT_MIN_RATIO = 0.5;
 
 function pickGlyph() {
   return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -75,6 +80,13 @@ function makeNodes(count, w, h) {
     });
   }
   return nodes;
+}
+
+function scaledNodeCount(width, base) {
+  if (width >= NODE_COUNT_DESKTOP_WIDTH) return base;
+  if (width <= NODE_COUNT_MOBILE_WIDTH) return Math.max(1, Math.round(base * NODE_COUNT_MIN_RATIO));
+  const t = (width - NODE_COUNT_MOBILE_WIDTH) / (NODE_COUNT_DESKTOP_WIDTH - NODE_COUNT_MOBILE_WIDTH);
+  return Math.max(1, Math.round(base * (NODE_COUNT_MIN_RATIO + (1 - NODE_COUNT_MIN_RATIO) * t)));
 }
 
 function findSection(start) {
@@ -154,7 +166,7 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       ctx.textAlign = 'center';
 
       if (nodes.length === 0 || widthChanged) {
-        nodes = makeNodes(nodeCount, width, height);
+        nodes = makeNodes(scaledNodeCount(width, nodeCount), width, height);
       } else {
         for (const n of nodes) {
           n.x = Math.min(Math.max(n.x, 0), width);
@@ -232,6 +244,27 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
             const f = (1 - d / mouseRadius) * mouseAttract * i;
             n.x += (dx / d) * f;
             n.y += (dy / d) * f;
+          }
+        }
+      }
+
+      const repelR2 = REPEL_RADIUS * REPEL_RADIUS;
+      for (let ai = 0; ai < nodes.length; ai++) {
+        const a = nodes[ai];
+        for (let bi = ai + 1; bi < nodes.length; bi++) {
+          const b = nodes[bi];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < repelR2 && d2 > 0.0001) {
+            const d = Math.sqrt(d2);
+            const f = (1 - d / REPEL_RADIUS) * REPEL_STRENGTH;
+            const fx = (dx / d) * f;
+            const fy = (dy / d) * f;
+            a.x += fx;
+            a.y += fy;
+            b.x -= fx;
+            b.y -= fy;
           }
         }
       }

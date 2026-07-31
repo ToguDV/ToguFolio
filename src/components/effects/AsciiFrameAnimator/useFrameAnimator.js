@@ -11,12 +11,11 @@ export default function useFrameAnimator({ frames, fps = 350, playing }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    setIndex(0);
     if (!playing || frames.length <= 1) {
-      setIndex(0);
       return undefined;
     }
     if (prefersReducedMotion()) {
-      setIndex(0);
       return undefined;
     }
 
@@ -25,7 +24,7 @@ export default function useFrameAnimator({ frames, fps = 350, playing }) {
     }, fps);
 
     return () => clearInterval(id);
-  }, [playing, frames.length, fps]);
+  }, [playing, frames, frames.length, fps]);
 
   return frames[index] ?? '';
 }

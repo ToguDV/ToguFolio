@@ -110,7 +110,7 @@ export const CAT_HERO_STAR_FRAMES = [
     ' ૮   ა   ',
   ].join('\n'),
   [
-    ' ∧ _ ∧  ',
+    ' ∧ _ ∧   ',
     '(* ω *„) ',
     ' ૮   ა   ',
   ].join('\n'),
