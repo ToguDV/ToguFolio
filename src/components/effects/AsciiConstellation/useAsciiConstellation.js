@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -31,6 +31,20 @@ const TWINKLE_DURATION_MIN = 180;
 const TWINKLE_DURATION_MAX = 700;
 const TWINKLE_BURST_MIN = 1;
 const TWINKLE_BURST_MAX = 3;
+const STAR_DELAY_FIRST_MIN = 2600;
+const STAR_DELAY_FIRST_MAX = 4800;
+const STAR_INTERVAL_MIN = 7000;
+const STAR_INTERVAL_MAX = 14000;
+const STAR_SPEED_MIN = 560;
+const STAR_SPEED_MAX = 820;
+const STAR_ANGLE_MIN = 0.3;
+const STAR_ANGLE_MAX = 0.55;
+const STAR_EDGE_PAD = 48;
+const STAR_GLOW_RADIUS = 130;
+const STAR_WAKE = 2.4;
+const STAR_TWINKLE_MS = 520;
+const STAR_TRAIL_MS = 260;
+const STAR_TRAIL_GLYPHS = ['=', '-', '-', '.', '.', ',', "'", ' '];
 
 function pickGlyph() {
   return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -76,7 +90,13 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
   const {
     nodeCount, linkDistance, mouseRadius, mouseAttract,
     drift, baseLinkAlpha, hoverLinkAlpha, anchorAlpha, fps,
+    onShootingStar,
   } = { ...DEFAULTS, ...options };
+
+  const onShootingStarRef = useRef(onShootingStar);
+  useEffect(() => {
+    onShootingStarRef.current = onShootingStar;
+  }, [onShootingStar]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -99,6 +119,23 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
     let raf = 0;
     let lastTime = 0;
     let twinkleTimer = rand(TWINKLE_INTERVAL_MIN, TWINKLE_INTERVAL_MAX);
+    let star = null;
+    let starTimer = rand(STAR_DELAY_FIRST_MIN, STAR_DELAY_FIRST_MAX);
+
+    function spawnStar() {
+      const fromLeft = Math.random() < 0.5;
+      const angle = rand(STAR_ANGLE_MIN, STAR_ANGLE_MAX);
+      const speed = rand(STAR_SPEED_MIN, STAR_SPEED_MAX);
+      const dir = fromLeft ? 1 : -1;
+      const vx = Math.cos(angle) * speed * dir;
+      const vy = Math.sin(angle) * speed;
+      const y = rand(height * 0.06, height * 0.42);
+      star = { x: fromLeft ? -STAR_EDGE_PAD : width + STAR_EDGE_PAD, y, vx, vy };
+
+      const crossX = (width + STAR_EDGE_PAD * 2) / Math.abs(vx);
+      const crossY = (height + STAR_EDGE_PAD - y) / vy;
+      onShootingStarRef.current?.(Math.min(crossX, crossY) * 1000);
+    }
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -140,6 +177,37 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
           n.twinkleDur = rand(TWINKLE_DURATION_MIN, TWINKLE_DURATION_MAX);
         }
         twinkleTimer = rand(TWINKLE_INTERVAL_MIN, TWINKLE_INTERVAL_MAX);
+      }
+
+      starTimer -= dt;
+      if (!star && starTimer <= 0) spawnStar();
+
+      if (star) {
+        star.x += star.vx * (dt / 1000);
+        star.y += star.vy * (dt / 1000);
+        if (
+          star.x < -STAR_EDGE_PAD || star.x > width + STAR_EDGE_PAD ||
+          star.y > height + STAR_EDGE_PAD
+        ) {
+          star = null;
+          starTimer = rand(STAR_INTERVAL_MIN, STAR_INTERVAL_MAX);
+        } else {
+          for (const n of nodes) {
+            const dx = n.x - star.x;
+            const dy = n.y - star.y;
+            const d = Math.hypot(dx, dy);
+            if (d < STAR_GLOW_RADIUS && d > 0.0001) {
+              const boost = 1 - d / STAR_GLOW_RADIUS;
+              if (boost * 1.15 > n.twinkle) {
+                n.twinkle = Math.min(1, boost * 1.15);
+                n.twinkleDur = Math.max(n.twinkleDur, STAR_TWINKLE_MS);
+              }
+              const f = boost * STAR_WAKE;
+              n.x += (dx / d) * f;
+              n.y += (dy / d) * f;
+            }
+          }
+        }
       }
 
       const i = mouse.intensity;
@@ -184,6 +252,13 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
         if (minMouse < mouseRadius) {
           const boost = 1 - minMouse / mouseRadius;
           alpha = Math.max(alpha, hoverLinkAlpha * boost * proximity * i);
+        }
+      }
+      if (star) {
+        const ds = Math.hypot(star.x - (a.x + b.x) * 0.5, star.y - (a.y + b.y) * 0.5);
+        if (ds < STAR_GLOW_RADIUS) {
+          const boost = 1 - ds / STAR_GLOW_RADIUS;
+          alpha = Math.max(alpha, hoverLinkAlpha * boost * proximity);
         }
       }
       if (alpha < 0.01) return;
@@ -248,6 +323,37 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       }
     }
 
+    function drawStar() {
+      if (!star) return;
+      const speed = Math.hypot(star.vx, star.vy);
+      if (speed < 0.0001) return;
+      const ux = star.vx / speed;
+      const uy = star.vy / speed;
+      const trailLen = (speed * STAR_TRAIL_MS) / 1000;
+      const steps = Math.max(4, Math.floor(trailLen / 9));
+
+      for (let s = steps; s >= 1; s--) {
+        const t = s / steps;
+        const alpha = Math.pow(1 - t, 1.3) * 0.9;
+        if (alpha < 0.02) continue;
+        const glyph = STAR_TRAIL_GLYPHS[
+          Math.min(STAR_TRAIL_GLYPHS.length - 1, Math.floor(t * STAR_TRAIL_GLYPHS.length))
+        ];
+        if (glyph === ' ') continue;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = s % 2 === 0 ? ink : softInk;
+        ctx.fillText(glyph, star.x - ux * trailLen * t, star.y - uy * trailLen * t);
+      }
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = ink;
+      ctx.save();
+      ctx.translate(star.x, star.y);
+      ctx.scale(1.4, 1.4);
+      ctx.fillText('*', 0, 0);
+      ctx.restore();
+    }
+
     function draw() {
       ctx.clearRect(0, 0, width, height);
 
@@ -264,6 +370,8 @@ export default function useAsciiConstellation(canvasRef, options = {}) {
       for (const n of nodes) {
         drawNode(n);
       }
+
+      drawStar();
 
       ctx.globalAlpha = 1;
     }

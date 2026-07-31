@@ -102,3 +102,16 @@ export const CAT_HERO_FRAMES = [
     ' ૮   ა   ',
   ].join('\n'),
 ];
+
+export const CAT_HERO_STAR_FRAMES = [
+  [
+    ' ∧ _ ∧   ',
+    '(* ω *„) ',
+    ' ૮   ა   ',
+  ].join('\n'),
+  [
+    ' ∧ _ ∧  ',
+    '(* ω *„) ',
+    ' ૮   ა   ',
+  ].join('\n'),
+];
